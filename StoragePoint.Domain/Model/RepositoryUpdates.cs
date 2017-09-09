@@ -1,4 +1,4 @@
-﻿namespace StoragePoint.Domain
+﻿namespace StoragePoint.Domain.Model
 {
     public class RepositoryUpdates
     {

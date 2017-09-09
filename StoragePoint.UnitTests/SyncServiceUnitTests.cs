@@ -1,98 +1,113 @@
 namespace StoragePoint.UnitTests
 {
-    using System;
-    using System.Linq;
+    using System.Collections.Generic;
 
     using FakeItEasy;
     using StoragePoint.Domain;
+    using StoragePoint.Domain.Exceptions;
+    using StoragePoint.Domain.Model;
+    using StoragePoint.Domain.Repository;
+    using StoragePoint.Domain.Service;
+
     using Xunit;
 
     public class SyncServiceUnitTests
     {
-        private readonly IFileRepository sourceRepoFake;
-        private readonly IFileRepository destinationRepoFake;
-        private readonly IFileRepository referenceRepoFake;
+        private readonly IFileRepository repo1Fake;
+        private readonly IFileRepository repo2Fake;
+        private readonly IFileRepository repo3Fake;
+        private readonly IFileRepository repo4Fake;
+        private readonly IFileRepository[] repos;
+        private readonly IFileReferenceRepository referenceRepoFake;
         private readonly IDifferencesMerger mergerFake;
 
         private readonly SyncService syncService;
 
         public SyncServiceUnitTests()
         {
-            this.sourceRepoFake = A.Fake<IFileRepository>();
-            this.destinationRepoFake = A.Fake<IFileRepository>();
-            this.referenceRepoFake = A.Fake<IFileRepository>();
+            this.repo1Fake = A.Fake<IFileRepository>();
+            A.CallTo(() => this.repo1Fake.IsEmpty).Returns(false);
+            this.repo2Fake = A.Fake<IFileRepository>();
+            A.CallTo(() => this.repo2Fake.IsEmpty).Returns(false);
+            this.repo3Fake = A.Fake<IFileRepository>();
+            A.CallTo(() => this.repo3Fake.IsEmpty).Returns(false);
+            this.repo4Fake = A.Fake<IFileRepository>();
+            A.CallTo(() => this.repo4Fake.IsEmpty).Returns(false);
+
+            this.repos = new IFileRepository[] { this.repo1Fake, this.repo2Fake, this.repo3Fake, this.repo4Fake };
+
+            this.referenceRepoFake = A.Fake<IFileReferenceRepository>();
+            A.CallTo(() => this.referenceRepoFake.IsInitialized).Returns(true);
+
             this.mergerFake = A.Fake<IDifferencesMerger>();
 
             this.syncService = new SyncService(this.mergerFake);
-        } 
-
-        [Fact]
-        public void SyncService_EmptyDestinationFolder_ItMustCheckIsDestinationEmpty()
-        {
-            this.syncService.Sync(this.sourceRepoFake, this.destinationRepoFake, this.referenceRepoFake);
-
-            A.CallTo(() => this.destinationRepoFake.IsRootEmpty).MustHaveHappened();
         }
 
         [Fact]
-        public void SyncService_EmptyDestinationFolder_ItMustCallCopyAllContentAndNoReferenceNullException()
+        public void SyncServiceEdges_ReferenceNotInitialized_ItMustThrowReferenceNotInitException()
         {
-            const IFileRepository NULL_REFERENCE_REPO = null;
-            A.CallTo(() => this.destinationRepoFake.IsRootEmpty).Returns(true);
-            
-            bool exceptionWasThrow = false;
-            try
+            A.CallTo(() => this.referenceRepoFake.IsInitialized).Returns(false);
+
+            Assert.Throws<ReferenceNotInitialized>(() => this.syncService.Sync(this.repos, this.referenceRepoFake));
+        }
+
+        [Fact]
+        public void SyncServiceEdges_ThereIsAtLeastEmptyRepo_ItMustThrowAllReposMustBeInitException()
+        {
+            A.CallTo(() => this.repo2Fake.IsEmpty).Returns(true);
+
+            Assert.Throws<AllRepositoriesMustBeInitialized>(() => this.syncService.Sync(this.repos, this.referenceRepoFake));
+        }
+
+        [Fact]
+        public void SyncServiceDetectUpdates_AllReposAreCorrect_ItMustCallDetectUpdatesForAllRepos()
+        {
+            this.syncService.Sync(this.repos, this.referenceRepoFake);
+
+            A.CallTo(() => this.referenceRepoFake.DetectUpdates(this.repo1Fake)).MustHaveHappened(Repeated.Exactly.Once);
+            A.CallTo(() => this.referenceRepoFake.DetectUpdates(this.repo2Fake)).MustHaveHappened(Repeated.Exactly.Once);
+            A.CallTo(() => this.referenceRepoFake.DetectUpdates(this.repo3Fake)).MustHaveHappened(Repeated.Exactly.Once);
+            A.CallTo(() => this.referenceRepoFake.DetectUpdates(this.repo4Fake)).MustHaveHappened(Repeated.Exactly.Once);
+            Assert.Equal(4, this.repos.Length);
+        }
+
+        [Fact]
+        public void SyncServiceDetectUpdates_AllReposAreCorrect_ItMustCallMergeUpdatesForAllUpdates()
+        {
+            IReadOnlyList<RepositoryUpdates> updates = new RepositoryUpdates[]
             {
-                this.syncService.Sync(this.sourceRepoFake, this.destinationRepoFake, NULL_REFERENCE_REPO);
-            }
-            catch (Exception)
-            {
-                exceptionWasThrow = true;
-            }
-            
-            A.CallTo(() => this.destinationRepoFake.GetAllFrom(this.sourceRepoFake)).MustHaveHappened();
-            Assert.False(exceptionWasThrow);
+                new RepositoryUpdates(),
+                new RepositoryUpdates(),
+                new RepositoryUpdates(),
+                new RepositoryUpdates()
+            };
+            A.CallTo(() => this.referenceRepoFake.DetectUpdates(this.repo1Fake)).Returns(updates[0]);
+            A.CallTo(() => this.referenceRepoFake.DetectUpdates(this.repo2Fake)).Returns(updates[1]);
+            A.CallTo(() => this.referenceRepoFake.DetectUpdates(this.repo3Fake)).Returns(updates[2]);
+            A.CallTo(() => this.referenceRepoFake.DetectUpdates(this.repo4Fake)).Returns(updates[3]);
+
+
+            this.syncService.Sync(this.repos, this.referenceRepoFake);
+
+            A.CallTo(() => this.mergerFake.Merge(A<IReadOnlyList<RepositoryUpdates>>.That.IsSameSequenceAs(updates)))
+                .MustHaveHappened(Repeated.Exactly.Once);
+            Assert.Equal(4, this.repos.Length);
         }
 
         [Fact]
-        public void SyncService_DestinationFolderExistsAndNullReference_ItMustThrowReferenceNullException()
+        public void SyncServiceDetectUpdates_AllReposAreCorrect_ItMustCallUpdateWithMergedUpdatesForAllRepos()
         {
-            const IFileRepository NULL_REFERENCE_REPO = null;
-            A.CallTo(() => this.destinationRepoFake.IsRootEmpty).Returns(false);
+            RepositoryUpdates mergedUpdates = new RepositoryUpdates();
+            A.CallTo(() => this.mergerFake.Merge(A<IReadOnlyList<RepositoryUpdates>>.Ignored)).Returns(mergedUpdates);
 
-            Assert.Throws<ArgumentNullException>(() => 
-                this.syncService.Sync(this.sourceRepoFake, this.destinationRepoFake, NULL_REFERENCE_REPO));
-        }
+            this.syncService.Sync(this.repos, this.referenceRepoFake);
 
-        [Fact]
-        public void SyncService_DestinationFolderExists_ItMustCallDetectUpdatesForSourceAndDestination()
-        {
-            A.CallTo(() => this.destinationRepoFake.IsRootEmpty).Returns(false);
-
-            this.syncService.Sync(this.sourceRepoFake, this.destinationRepoFake, this.referenceRepoFake);
-
-            A.CallTo(() => this.referenceRepoFake.DetectUpdates(A<IFileRepository>.That.IsSameAs(this.sourceRepoFake)))
-                .MustHaveHappened();
-            A.CallTo(() => this.referenceRepoFake.DetectUpdates(A<IFileRepository>.That.IsSameAs(this.destinationRepoFake)))
-                .MustHaveHappened();
-        }
-
-        [Fact]
-        public void SyncService_DestinationFolderExists_ItMustCallDifferencesMerger()
-        {
-            A.CallTo(() => this.destinationRepoFake.IsRootEmpty).Returns(false);
-            RepositoryUpdates fromSource = new RepositoryUpdates();
-            A.CallTo(() => this.referenceRepoFake.DetectUpdates(this.sourceRepoFake)).Returns(fromSource);
-            RepositoryUpdates fromDestination = new RepositoryUpdates();
-            A.CallTo(() => this.referenceRepoFake.DetectUpdates(this.destinationRepoFake)).Returns(fromDestination);
-
-            this.syncService.Sync(this.sourceRepoFake, this.destinationRepoFake, this.referenceRepoFake);
-
-            A.CallTo(() => this.mergerFake.Merge(A<RepositoryUpdates[]>.That.Matches(m => 
-                    m.Length == 2
-                    && m.Contains(fromSource)
-                    && m.Contains(fromDestination))))
-                .MustHaveHappened();
+            A.CallTo(() => this.repo1Fake.Update(mergedUpdates)).MustHaveHappened(Repeated.Exactly.Once);
+            A.CallTo(() => this.repo2Fake.Update(mergedUpdates)).MustHaveHappened(Repeated.Exactly.Once);
+            A.CallTo(() => this.repo3Fake.Update(mergedUpdates)).MustHaveHappened(Repeated.Exactly.Once);
+            A.CallTo(() => this.repo4Fake.Update(mergedUpdates)).MustHaveHappened(Repeated.Exactly.Once);
+            Assert.Equal(4, this.repos.Length);
         }
     }
 }
