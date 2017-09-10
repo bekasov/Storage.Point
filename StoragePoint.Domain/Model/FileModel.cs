@@ -4,12 +4,14 @@
 
     public enum FileType
     {
-        FILE,
+        FILE = 0,
         FOLDER
     }
 
     public class FileModel
     {
+        public const int ROOT_FOLDER_PARENT_OS_ID = 0;
+
         public int FileOsId { get; set; }
 
         public FileType FileType { get; set; }
@@ -21,5 +23,7 @@
         public string ParentPath { get; set; }
 
         public DateTime UpdateTime { get; set; }
+
+        public bool IsRootFolder => this.FileType == FileType.FOLDER && this.ParentFileOsId == ROOT_FOLDER_PARENT_OS_ID;
     }
 }
