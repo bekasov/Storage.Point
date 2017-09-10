@@ -2,8 +2,6 @@
 {
     public interface IFileReferenceRepository : IFileRepository
     {
-        bool IsInitialized { get; }
-
-        bool ItHaveBeenSynchedWith(IFileRepository source);
+        //bool ItHaveBeenSynchedWith(IFileRepository source);
     }
 }

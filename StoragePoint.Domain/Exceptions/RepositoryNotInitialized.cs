@@ -1,6 +1,6 @@
 ﻿namespace StoragePoint.Domain.Exceptions
 {
-    public class ReferenceNotInitialized : BaseException
+    public class RepositoryNotInitialized : BaseException
     {
         
     }

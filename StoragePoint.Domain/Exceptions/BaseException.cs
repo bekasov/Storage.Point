@@ -2,8 +2,14 @@
 {
     using System;
 
-    public class BaseException : Exception
+    public abstract class BaseException : Exception
     {
-        
+        protected BaseException()
+        {
+        }
+
+        protected BaseException(string message) : base(message)
+        {
+        }
     }
 }

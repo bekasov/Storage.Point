@@ -4,7 +4,7 @@
 
     public interface IFileRepository
     {
-        bool IsEmpty { get; }
+        bool IsInitialized { get; }
 
         void CopyAll(IFileRepository source);
 

@@ -2,19 +2,24 @@
 {
     using System;
 
+    public enum FileType
+    {
+        FILE,
+        FOLDER
+    }
+
     public class FileModel
     {
-        public FileModel(int fileOsId, string name, DateTime updateTime)
-        {
-            this.FileOsId = fileOsId;
-            this.Name = name;
-            this.UpdateTime = updateTime;
-        }
+        public int FileOsId { get; set; }
 
-        public int FileOsId { get; private set; }
+        public FileType FileType { get; set; }
 
-        public string Name { get; private set; }
+        public int ParentFileOsId { get; set; }
 
-        public DateTime UpdateTime { get; private set; }
+        public string Name { get; set; }
+
+        public string ParentPath { get; set; }
+
+        public DateTime UpdateTime { get; set; }
     }
 }

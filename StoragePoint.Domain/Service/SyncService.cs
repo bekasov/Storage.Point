@@ -18,24 +18,44 @@
             this.differencesMerger = differencesMerger;
         }
 
-        public void Sync(IReadOnlyList<IFileRepository> sources, IFileReferenceRepository syncReference)
+        public void InitReference(IFileReferenceRepository syncReference, IFileRepository source)
         {
-            if (sources == null)
-            {
-                throw new ArgumentNullException(nameof(sources));
-            }
-
             if (syncReference == null)
             {
                 throw new ArgumentNullException(nameof(syncReference));
             }
 
-            if (!syncReference.IsInitialized)
+            if (source == null)
             {
-                throw new ReferenceNotInitialized();
+                throw new ArgumentNullException(nameof(source));
             }
 
-            if (sources.Any(repository => repository.IsEmpty))
+            if (syncReference.IsInitialized)
+            {
+                return;
+            }
+
+            syncReference.CopyAll(source);
+        }
+
+        public void InitRepositories(IReadOnlyList<IFileRepository> sources, IFileReferenceRepository syncReference)
+        {
+            this.EnsureSourcesAndReferenceIsNotNull(sources, syncReference);
+            this.EnsureRepositoryIsInitialized(syncReference);
+
+            IList<IFileRepository> uninitRepos = sources
+                .Where(s => s.IsInitialized == false)
+                .ToList();
+
+            Parallel.ForEach(uninitRepos, r => r.CopyAll(syncReference));
+        }
+
+        public void Sync(IReadOnlyList<IFileRepository> sources, IFileReferenceRepository syncReference)
+        {
+            this.EnsureSourcesAndReferenceIsNotNull(sources, syncReference);
+            this.EnsureRepositoryIsInitialized(syncReference);
+
+            if (sources.Any(repository => repository.IsInitialized))
             {
                 throw new AllRepositoriesMustBeInitialized();
             }
@@ -48,25 +68,31 @@
             RepositoryUpdates mergedUpdates = this.differencesMerger.Merge(reposUpdates.Select(u => u.Updates).ToList());
 
             Parallel.ForEach(sources, s => s.Update(mergedUpdates));
+
+            syncReference.Update(mergedUpdates);
         }
 
-        //private void InitRepository(IFileRepository source, IFileRepository destination)
-        //{
-        //    IList<(IFileRepository Repo, bool IsSynced)> reposSyncInfo = sources
-        //        .Select(s => (Repo: s, IsSynced: syncReference.ItHaveBeenSynchedWith(s)))
-        //        .ToList();
-        //const int MIN_NUMBER_OF_EMPTY_REPOS_FOR_INIT_REFERENCE = 1;
-        //    IList<(IFileRepository Repo, bool IsEmpty)> reposIsEmptyInfo = sources
-        //        .Select(s => (Repo: s, IsEmpty: s.IsEmpty))
-        //        .ToList();
+        private void EnsureSourcesAndReferenceIsNotNull(
+                IReadOnlyList<IFileRepository> sources, 
+                IFileReferenceRepository syncReference)
+        {
+            if (sources == null)
+            {
+                throw new ArgumentNullException(nameof(sources));
+            }
 
-        //    if (!reposSyncInfo.Any(i => i.IsSynced))
-        //    {
-        //        if (reposIsEmptyInfo.Count(i => i.IsEmpty) != MIN_NUMBER_OF_EMPTY_REPOS_FOR_INIT_REFERENCE)
-        //        {
-        //            //throw new 
-        //        }
-        //    }
-        //}
+            if (syncReference == null)
+            {
+                throw new ArgumentNullException(nameof(syncReference));
+            }
+        }
+
+        private void EnsureRepositoryIsInitialized(IFileRepository source)
+        {
+            if (!source.IsInitialized)
+            {
+                throw new RepositoryNotInitialized();
+            }
+        }
     }
 }
