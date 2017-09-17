@@ -1,12 +1,11 @@
 ﻿namespace StoragePoint.Domain.Service
 {
     using System;
-    using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
 
     using StoragePoint.Domain.Model;
-    using StoragePoint.Domain.Repository;
+    using StoragePoint.Domain.Service.Comparator;
 
     public class UpdatesDetector
     {
@@ -25,11 +24,21 @@
             this.EnsureContentHasRootAndOnlyOneRootFolder(referenceContent, nameof(referenceContent));
             this.EnsureContentHasRootAndOnlyOneRootFolder(source, nameof(source));
 
-            List<FileModel> addedFiles = this.DetectNewFiles(referenceContent, source);
+            List<FileModel> addedFiles = this.GetSource2ExceptSource1(
+                referenceContent.Files, 
+                source.Files, 
+                new FileOsIdComparator());
+            List<FileModel> removedFiles = this.GetSource2ExceptSource1(
+                source.Files, 
+                referenceContent.Files, 
+                new FileOsIdComparator());
+            
 
             RepositoryUpdates result = new RepositoryUpdates
             {
-                Added = addedFiles
+                Added = addedFiles,
+                Removed = removedFiles,
+                Moved = this.DetectMovedFiles(referenceContent, source, removedFiles, addedFiles)
             };
 
             return result;
@@ -43,24 +52,57 @@
             }
         }
 
-        private List<FileModel> DetectNewFiles(StorageContent referenceContent, StorageContent source)
+        private List<FileModel> GetSource2ExceptSource1(
+            IReadOnlyList<FileModel> source1,
+            IReadOnlyList<FileModel> source2,
+            IEqualityComparer<FileModel> comparator)
         {
-            List<FileModel> result = source.Files.Except(referenceContent.Files, new FileByOsIdComparator()).ToList();
+            List<FileModel> result = source2
+                .Except(source1, comparator)
+                .ToList();
 
             return result;
         }
-    }
 
-    public class FileByOsIdComparator : IEqualityComparer<FileModel>
-    {
-        public bool Equals(FileModel x, FileModel y)
+        private List<FileModel> DetectMovedFiles(
+            StorageContent referenceContent, 
+            StorageContent source, 
+            IList<FileModel> removedFiles,
+            IList<FileModel> newFiles)
         {
-            return x.FileOsId == y.FileOsId;
-        }
+            List<FileModel> result = new List<FileModel>();
 
-        public int GetHashCode(FileModel obj)
-        {
-            return obj.FileOsId.GetHashCode();
+            void FindChildren(List<FileModel> parents)
+            {
+                foreach (FileModel parent in parents)
+                {
+                    List<FileModel> children = source.Files.Where(f => f.ParentFileOsId == parent.FileOsId).ToList();
+                    if (children.Any())
+                    {
+                        result.AddRange(children);
+                        FindChildren(children);
+                    }
+                }
+            }
+
+            int[] removedFilesIds = removedFiles.Select(f => f.FileOsId).ToArray();
+
+            List<FileModel> rootMovedFiles = this.GetSource2ExceptSource1(
+                    source.Files,
+                    referenceContent.Files,
+                    new FileOsIdsAndParentsIdsComparator())
+                .Where(f => !removedFilesIds.Contains(f.FileOsId))
+                .ToList();
+            
+            result.AddRange(rootMovedFiles);
+            FindChildren(rootMovedFiles);
+
+            int[] newFilesIds = newFiles.Select(f => f.FileOsId).ToArray();
+            result = result
+                .Distinct(new FileOsIdComparator())
+                .Where(f => !newFilesIds.Contains(f.FileOsId))
+                .ToList();
+            return result;
         }
     }
 }

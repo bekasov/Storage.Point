@@ -11,5 +11,7 @@
         public IReadOnlyList<FileModel> ChangedContent { get; set; }
 
         public IReadOnlyList<FileModel> Renamed { get; set; }
+
+        public IReadOnlyList<FileModel> Moved { get; set; }
     }
 }

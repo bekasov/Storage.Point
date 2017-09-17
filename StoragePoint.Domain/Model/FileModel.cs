@@ -20,8 +20,6 @@
 
         public string Name { get; set; }
 
-        public string ParentPath { get; set; }
-
         public DateTime UpdateTime { get; set; }
 
         public bool IsRootFolder => this.FileType == FileType.FOLDER && this.ParentFileOsId == ROOT_FOLDER_PARENT_OS_ID;

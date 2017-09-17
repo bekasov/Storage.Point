@@ -1,8 +1,6 @@
-﻿namespace StoragePoint.Domain.Repository
+﻿namespace StoragePoint.Domain.Model
 {
     using System.Collections.Generic;
-
-    using StoragePoint.Domain.Model;
 
     public class StorageContent
     {
