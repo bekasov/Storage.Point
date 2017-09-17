@@ -1,6 +1,5 @@
 ﻿namespace StoragePoint.UnitTests.Helper
 {
-    using System;
     using System.Collections.Generic;
     using System.Security.Cryptography;
 

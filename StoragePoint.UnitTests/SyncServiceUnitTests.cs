@@ -21,7 +21,7 @@ namespace StoragePoint.UnitTests
 
         private readonly IFileReferenceRepository referenceRepoFake;
 
-        private readonly IDifferencesMerger mergerFake;
+        private readonly IUpdatesMerger mergerFake;
 
         private readonly SyncService syncService;
 
@@ -41,7 +41,7 @@ namespace StoragePoint.UnitTests
             this.referenceRepoFake = A.Fake<IFileReferenceRepository>();
             A.CallTo(() => this.referenceRepoFake.IsInitialized).Returns(true);
 
-            this.mergerFake = A.Fake<IDifferencesMerger>();
+            this.mergerFake = A.Fake<IUpdatesMerger>();
 
             this.syncService = new SyncService(this.mergerFake);
         }

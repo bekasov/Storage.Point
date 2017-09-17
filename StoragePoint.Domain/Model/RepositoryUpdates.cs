@@ -8,7 +8,7 @@
 
         public IReadOnlyList<FileModel> Removed { get; set; }
 
-        public IReadOnlyList<FileModel> ChangedContent { get; set; }
+        public IReadOnlyList<FileModel> Changed { get; set; }
 
         public IReadOnlyList<FileModel> Renamed { get; set; }
 

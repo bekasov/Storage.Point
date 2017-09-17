@@ -13,7 +13,6 @@
         public const int ROOT_FOLDER_OS_ID = 0;
         public const int ROOT_FOLDER_PARENT_OS_ID = 0;
         
-
         public int FileOsId { get; set; }
 
         public FileType FileType { get; set; }

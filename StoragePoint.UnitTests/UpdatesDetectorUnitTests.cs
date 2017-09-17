@@ -13,10 +13,7 @@
     public class UpdatesDetectorUnitTests
     {
         private readonly StorageContent referenceContent;
-        private readonly List<FileModel> referenceFiles;
-
         private readonly StorageContent sourceContent;
-        private readonly List<FileModel> sourceFiles;
 
         private readonly UpdatesDetector detector;
 
@@ -24,18 +21,18 @@
 
         public UpdatesDetectorUnitTests()
         {
-            this.referenceFiles = new List<FileModel>(this.CreateReferenceContent());
-            this.referenceFiles.Shuffle();
+            List<FileModel> referenceFiles = new List<FileModel>(this.CreateReferenceContent());
+            referenceFiles.Shuffle();
             this.referenceContent = new StorageContent
             {
-                Files = this.referenceFiles
+                Files = referenceFiles
             };
 
-            this.sourceFiles = new List<FileModel>(this.CreateChangedContent());
-            this.sourceFiles.Shuffle();
+            List<FileModel> sourceFiles = new List<FileModel>(this.CreateChangedContent());
+            sourceFiles.Shuffle();
             this.sourceContent = new StorageContent
             {
-                Files = this.sourceFiles
+                Files = sourceFiles
             };
 
             this.now = DateTime.Parse("2017-09-16 17:44:23");
@@ -65,6 +62,27 @@
         }
 
         [Fact]
+        public void UpdatesDetectorNewFiles_EmptyReference_ItMustAddAllNewFilesToResult()
+        {
+            RepositoryUpdates actualUpdates = this.detector.Detect(
+                new StorageContent { Files = new FileModel[0] }, 
+                this.sourceContent);
+
+            Assert.Equal(this.sourceContent.Files.Count, actualUpdates.Added.Count);
+            Assert.Contains(actualUpdates.Added, f => this.sourceContent.Files.Contains(f));
+        }
+
+        [Fact]
+        public void UpdatesDetectorNewFiles_EmptyReferenceAndSource_ItMustNotAddAnyNewFilesToResult()
+        {
+            RepositoryUpdates actualUpdates = this.detector.Detect(
+                new StorageContent { Files = new FileModel[0] },
+                new StorageContent { Files = new FileModel[0] });
+
+            Assert.Equal(0, actualUpdates.Added.Count);
+        }
+
+        [Fact]
         public void UpdatesDetectorRemovedFiles_CorrectArgs_ItMustAddRemovedFilesToResult()
         {
             RepositoryUpdates actualUpdates = this.detector.Detect(this.referenceContent, this.sourceContent);
@@ -74,6 +92,17 @@
             Assert.True(actualUpdates.Removed.Any(f => f.FileOsId == 14));
             Assert.True(actualUpdates.Removed.Any(f => f.FileOsId == 15));
             Assert.True(actualUpdates.Removed.Any(f => f.FileOsId == 16));
+        }
+
+        [Fact]
+        public void UpdatesDetectorRemovedFiles_EmptySource_ItMustAddAllFilesToResult()
+        {
+            RepositoryUpdates actualUpdates = this.detector.Detect(
+                this.referenceContent,
+                new StorageContent { Files = new FileModel[0] });
+
+            Assert.Equal(this.referenceContent.Files.Count, actualUpdates.Removed.Count);
+            Assert.Contains(actualUpdates.Removed, f => this.referenceContent.Files.Contains(f));
         }
 
         [Fact]
@@ -101,10 +130,22 @@
             Assert.True(actualUpdates.Renamed.Any(f => f.FileOsId == 13));
         }
 
+        [Fact]
+        public void UpdatesDetectorChangingFiles_CorrectArgs_ItMustAddUpdatedFilesInfoInResult()
+        {
+            RepositoryUpdates actualUpdates = this.detector.Detect(this.referenceContent, this.sourceContent);
+
+            Assert.Equal(3, actualUpdates.Changed.Count);
+            Assert.True(actualUpdates.Changed.Any(f => f.FileOsId == 13));
+            Assert.True(actualUpdates.Changed.Any(f => f.FileOsId == 09));
+            Assert.True(actualUpdates.Changed.Any(f => f.FileOsId == 10));
+        }
+
         private FileModel[] CreateReferenceContent()
         {
             return new[]
             {
+                new FileModel { FileOsId = 01, UpdateTime = this.now, ParentFileOsId = 00, FileType = FileType.FILE }, // 1
                 new FileModel { FileOsId = 02, UpdateTime = this.now, ParentFileOsId = 00, FileType = FileType.FOLDER }, // 2
                 new FileModel { FileOsId = 03, UpdateTime = this.now, ParentFileOsId = 00, FileType = FileType.FOLDER, Name = "FD3" }, // 3
                 new FileModel { FileOsId = 04, UpdateTime = this.now, ParentFileOsId = 00, FileType = FileType.FOLDER }, // 4
@@ -148,11 +189,11 @@
 
             // MOVED
             result.RemoveAll(f => new int[] { 08, 11, 12, 13, 06 }.Contains(f.FileOsId));
-            var movedFile1 = new FileModel { FileOsId = 08, ParentFileOsId = 11, FileType = FileType.FOLDER }; // 08 --> 11
-            var movedFile2 = new FileModel { FileOsId = 11, ParentFileOsId = 00, FileType = FileType.FOLDER }; // 11 --> 00
-            var movedFile3 = new FileModel { FileOsId = 12, ParentFileOsId = 17, FileType = FileType.FOLDER }; // 12 --> 17
-            var movedFile4 = new FileModel { FileOsId = 13, ParentFileOsId = 12, FileType = FileType.FILE };   // no changes
-            var movedFile5 = new FileModel { FileOsId = 06, ParentFileOsId = 11, FileType = FileType.FOLDER }; // 06 --> 11
+            var movedFile1 = new FileModel { FileOsId = 08, ParentFileOsId = 11, FileType = FileType.FOLDER, UpdateTime = this.now }; // 08 --> 11
+            var movedFile2 = new FileModel { FileOsId = 11, ParentFileOsId = 00, FileType = FileType.FOLDER, UpdateTime = this.now }; // 11 --> 00
+            var movedFile3 = new FileModel { FileOsId = 12, ParentFileOsId = 17, FileType = FileType.FOLDER, UpdateTime = this.now }; // 12 --> 17
+            var movedFile4 = new FileModel { FileOsId = 13, ParentFileOsId = 12, FileType = FileType.FILE, UpdateTime = this.now };   // no changes
+            var movedFile5 = new FileModel { FileOsId = 06, ParentFileOsId = 11, FileType = FileType.FOLDER, UpdateTime = this.now }; // 06 --> 11
             result.AddRange(new FileModel[] { movedFile1, movedFile2, movedFile3, movedFile4, movedFile5 });
 
             // RENAMED
@@ -162,6 +203,13 @@
             movedFile4.Name = "F_13"; // 13
             var renamedFile4 = new FileModel { FileOsId = 09, Name = "F 9",  ParentFileOsId = 02, FileType = FileType.FILE, UpdateTime = this.now };   // 16
             result.AddRange(new FileModel[] { renamedFile1, renamedFile4 });
+
+            // CHANGED
+            movedFile4.UpdateTime = movedFile4.UpdateTime.AddMinutes(2);
+            renamedFile4.UpdateTime = renamedFile4.UpdateTime.AddMilliseconds(2);
+            result.RemoveAll(f => new int[] { 10 }.Contains(f.FileOsId));
+            var changedFile1 = new FileModel { FileOsId = 10, UpdateTime = this.now.AddHours(1), ParentFileOsId = 02, FileType = FileType.FILE };  // 10
+            result.AddRange(new FileModel[] { changedFile1 });
 
             return result.ToArray();
         }

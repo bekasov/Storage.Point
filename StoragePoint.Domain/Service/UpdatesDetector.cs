@@ -20,20 +20,19 @@
             {
                 throw new ArgumentNullException(nameof(source));
             }
-
-            // this.EnsureContentHasRootAndOnlyOneRootFolder(referenceContent, nameof(referenceContent));
-            // this.EnsureContentHasRootAndOnlyOneRootFolder(source, nameof(source));
-
+            
             List<FileModel> addedFiles = this.GetSource2ExceptSource1(
                 referenceContent.Files, 
                 source.Files, 
                 new FileOsIdComparator());
             int[] addedFilesIds = addedFiles.Select(f => f.FileOsId).ToArray();
+
             List<FileModel> removedFiles = this.GetSource2ExceptSource1(
                 source.Files, 
                 referenceContent.Files, 
                 new FileOsIdComparator());
             int[] removedFilesIds = removedFiles.Select(f => f.FileOsId).ToArray();
+
             List<FileModel> renamedFiles = this.GetSource2ExceptSource1(
                     referenceContent.Files,
                     source.Files,
@@ -46,19 +45,12 @@
                 Added = addedFiles,
                 Removed = removedFiles,
                 Moved = this.DetectMovedFiles(referenceContent, source, removedFilesIds, addedFilesIds),
-                Renamed = renamedFiles
+                Renamed = renamedFiles,
+                Changed = this.DetectChangedFiles(referenceContent, source, removedFilesIds)
             };
 
             return result;
         }
-
-//        private void EnsureContentHasRootAndOnlyOneRootFolder(StorageContent content, string argumentName)
-//        {
-//            if (content.Files == null || content.Files.Count(f => f.IsRootFolder) != 1)
-//            {
-//                throw new ArgumentException(argumentName);
-//            }
-//        }
 
         private List<FileModel> GetSource2ExceptSource1(
             IReadOnlyList<FileModel> source1,
@@ -107,6 +99,21 @@
                 .Distinct(new FileOsIdComparator())
                 .Where(f => !newFilesIds.Contains(f.FileOsId))
                 .ToList();
+            return result;
+        }
+
+        private List<FileModel> DetectChangedFiles(
+            StorageContent referenceContent,
+            StorageContent source,
+            int[] removedFilesIds)
+        {
+            List<FileModel> result = this.GetSource2ExceptSource1(
+                    source.Files,
+                    referenceContent.Files,
+                    new FileOsIdsAndUpdateDateComparator())
+                .Where(f => !removedFilesIds.Contains(f.FileOsId))
+                .ToList();
+            
             return result;
         }
     }

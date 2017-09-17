@@ -1,10 +1,10 @@
-﻿namespace StoragePoint.Domain
+﻿namespace StoragePoint.Domain.Service
 {
     using System.Collections.Generic;
 
     using StoragePoint.Domain.Model;
 
-    public interface IDifferencesMerger
+    public interface IUpdatesMerger
     {
         RepositoryUpdates Merge(IReadOnlyList<RepositoryUpdates> differences);
     }

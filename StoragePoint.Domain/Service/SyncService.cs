@@ -11,11 +11,11 @@
 
     public class SyncService
     {
-        private readonly IDifferencesMerger differencesMerger;
+        private readonly IUpdatesMerger updatesMerger;
 
-        public SyncService(IDifferencesMerger differencesMerger)
+        public SyncService(IUpdatesMerger updatesMerger)
         {
-            this.differencesMerger = differencesMerger;
+            this.updatesMerger = updatesMerger;
         }
 
         public void InitReference(IFileReferenceRepository syncReference, IFileRepository source)
@@ -65,7 +65,7 @@
                 .AsParallel()
                 .ToList();
 
-            RepositoryUpdates mergedUpdates = this.differencesMerger.Merge(reposUpdates.Select(u => u.Updates).ToList());
+            RepositoryUpdates mergedUpdates = this.updatesMerger.Merge(reposUpdates.Select(u => u.Updates).ToList());
 
             Parallel.ForEach(sources, s => s.Update(mergedUpdates));
 

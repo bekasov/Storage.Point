@@ -2,7 +2,6 @@
 {
     using System.Collections.Generic;
 
-    using StoragePoint.Domain.Common.Extensions;
     using StoragePoint.Domain.Model;
 
     public class FileOsIdsAndParentsIdsComparator : IEqualityComparer<FileModel>
