@@ -21,36 +21,44 @@
                 throw new ArgumentNullException(nameof(source));
             }
 
-            this.EnsureContentHasRootAndOnlyOneRootFolder(referenceContent, nameof(referenceContent));
-            this.EnsureContentHasRootAndOnlyOneRootFolder(source, nameof(source));
+            // this.EnsureContentHasRootAndOnlyOneRootFolder(referenceContent, nameof(referenceContent));
+            // this.EnsureContentHasRootAndOnlyOneRootFolder(source, nameof(source));
 
             List<FileModel> addedFiles = this.GetSource2ExceptSource1(
                 referenceContent.Files, 
                 source.Files, 
                 new FileOsIdComparator());
+            int[] addedFilesIds = addedFiles.Select(f => f.FileOsId).ToArray();
             List<FileModel> removedFiles = this.GetSource2ExceptSource1(
                 source.Files, 
                 referenceContent.Files, 
                 new FileOsIdComparator());
-            
+            int[] removedFilesIds = removedFiles.Select(f => f.FileOsId).ToArray();
+            List<FileModel> renamedFiles = this.GetSource2ExceptSource1(
+                    referenceContent.Files,
+                    source.Files,
+                    new FileOsIdsAndNamesComparator())
+                .Where(f => !addedFilesIds.Contains(f.FileOsId))
+                .ToList();
 
             RepositoryUpdates result = new RepositoryUpdates
             {
                 Added = addedFiles,
                 Removed = removedFiles,
-                Moved = this.DetectMovedFiles(referenceContent, source, removedFiles, addedFiles)
+                Moved = this.DetectMovedFiles(referenceContent, source, removedFilesIds, addedFilesIds),
+                Renamed = renamedFiles
             };
 
             return result;
         }
 
-        private void EnsureContentHasRootAndOnlyOneRootFolder(StorageContent content, string argumentName)
-        {
-            if (content.Files == null || content.Files.Count(f => f.IsRootFolder) != 1)
-            {
-                throw new ArgumentException(argumentName);
-            }
-        }
+//        private void EnsureContentHasRootAndOnlyOneRootFolder(StorageContent content, string argumentName)
+//        {
+//            if (content.Files == null || content.Files.Count(f => f.IsRootFolder) != 1)
+//            {
+//                throw new ArgumentException(argumentName);
+//            }
+//        }
 
         private List<FileModel> GetSource2ExceptSource1(
             IReadOnlyList<FileModel> source1,
@@ -66,9 +74,9 @@
 
         private List<FileModel> DetectMovedFiles(
             StorageContent referenceContent, 
-            StorageContent source, 
-            IList<FileModel> removedFiles,
-            IList<FileModel> newFiles)
+            StorageContent source,
+            int[] removedFilesIds,
+            int[] newFilesIds)
         {
             List<FileModel> result = new List<FileModel>();
 
@@ -85,8 +93,6 @@
                 }
             }
 
-            int[] removedFilesIds = removedFiles.Select(f => f.FileOsId).ToArray();
-
             List<FileModel> rootMovedFiles = this.GetSource2ExceptSource1(
                     source.Files,
                     referenceContent.Files,
@@ -97,7 +103,6 @@
             result.AddRange(rootMovedFiles);
             FindChildren(rootMovedFiles);
 
-            int[] newFilesIds = newFiles.Select(f => f.FileOsId).ToArray();
             result = result
                 .Distinct(new FileOsIdComparator())
                 .Where(f => !newFilesIds.Contains(f.FileOsId))

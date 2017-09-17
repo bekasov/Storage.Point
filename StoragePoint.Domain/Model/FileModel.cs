@@ -10,7 +10,9 @@
 
     public class FileModel
     {
+        public const int ROOT_FOLDER_OS_ID = 0;
         public const int ROOT_FOLDER_PARENT_OS_ID = 0;
+        
 
         public int FileOsId { get; set; }
 
@@ -22,6 +24,6 @@
 
         public DateTime UpdateTime { get; set; }
 
-        public bool IsRootFolder => this.FileType == FileType.FOLDER && this.ParentFileOsId == ROOT_FOLDER_PARENT_OS_ID;
+        // public bool IsRootFolder => this.FileType == FileType.FOLDER && this.ParentFileOsId == ROOT_FOLDER_PARENT_OS_ID;
     }
 }
