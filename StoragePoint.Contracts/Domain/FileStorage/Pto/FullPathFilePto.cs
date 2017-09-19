@@ -4,11 +4,14 @@
 
     public class FullPathFilePto
     {
-        public FullPathFilePto(FileModel file, string fullPath)
+        public FullPathFilePto(int sourceStorageId, FileModel file, string fullPath)
         {
+            this.SourceStorageId = sourceStorageId;
             this.File = file;
             this.FullPath = fullPath;
         }
+
+        public int SourceStorageId { get; }
 
         public string FullPath { get; }
 

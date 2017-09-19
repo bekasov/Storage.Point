@@ -61,12 +61,12 @@
                 throw new AllRepositoriesMustBeInitialized();
             }
             
-            IList<(IFileRepository Repo, RepositoryUpdates Updates)> reposUpdates = sources
+            IList<(IFileRepository Repo, StorageUpdates Updates)> reposUpdates = sources
                 .Select(repository => (Repo: repository, Updates: syncReference.DetectUpdates(repository)))
                 .AsParallel()
                 .ToList();
 
-            RepositoryUpdates mergedUpdates = this.updatesMerger.Merge(reposUpdates.Select(u => u.Updates).ToList());
+            StorageUpdates mergedUpdates = this.updatesMerger.Merge(reposUpdates.Select(u => u.Updates).ToList());
 
             Parallel.ForEach(sources, s => s.Update(mergedUpdates));
 

@@ -6,6 +6,6 @@
 
     public interface IUpdatesMerger
     {
-        RepositoryUpdates Merge(IReadOnlyList<RepositoryUpdates> updates);
+        StorageUpdates Merge(IReadOnlyList<StorageUpdates> updates);
     }
 }

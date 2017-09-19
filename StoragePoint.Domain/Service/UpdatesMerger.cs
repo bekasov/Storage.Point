@@ -1,6 +1,7 @@
 ﻿namespace StoragePoint.Domain.Service
 {
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
 
     using StoragePoint.Contracts.Domain.FileStorage.Model;
@@ -17,23 +18,23 @@
             this.pathBuilder = pathBuilder;
         }
 
-        public RepositoryUpdates Merge(IReadOnlyList<RepositoryUpdates> updates)
+        public StorageUpdates Merge(IReadOnlyList<StorageUpdates> updates)
         {
-            List<FullPathFilePto> added = new List<FullPathFilePto>();
-            List<FullPathFilePto> removed = new List<FullPathFilePto>();
-            List<FullPathFilePto> changed = new List<FullPathFilePto>();
-            List<FullPathFilePto> renamed = new List<FullPathFilePto>();
-            List<FullPathFilePto> moved = new List<FullPathFilePto>();
+            List<FullPathFilePto> allAdded = new List<FullPathFilePto>();
+            List<FullPathFilePto> allRemoved = new List<FullPathFilePto>();
+            List<FullPathFilePto> allChanged = new List<FullPathFilePto>();
+            List<FullPathFilePto> allRenamed = new List<FullPathFilePto>();
+            List<FullPathFilePto> allMoved = new List<FullPathFilePto>();
 
             Parallel.ForEach(
                 updates, 
                 u => 
                 {
-                    added.AddRange(this.pathBuilder.GetPaths(u.Added));
-                    removed.AddRange(this.pathBuilder.GetPaths(u.Removed));
-                    changed.AddRange(this.pathBuilder.GetPaths(u.Changed));
-                    renamed.AddRange(this.pathBuilder.GetPaths(u.Renamed));
-                    moved.AddRange(this.pathBuilder.GetPaths(u.Moved));
+                    allAdded.AddRange(this.pathBuilder.GetPaths(u.Added));
+                    allRemoved.AddRange(this.pathBuilder.GetPaths(u.Removed));
+                    allChanged.AddRange(this.pathBuilder.GetPaths(u.Changed));
+                    allRenamed.AddRange(this.pathBuilder.GetPaths(u.Renamed));
+                    allMoved.AddRange(this.pathBuilder.GetPaths(u.Moved));
                 });
 
             return null;

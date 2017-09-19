@@ -83,10 +83,10 @@ namespace StoragePoint.UnitTests
         [Fact]
         public void SyncServiceDetectUpdates_AllReposAreCorrect_ItMustCallMergeUpdatesForAllUpdates()
         {
-            IReadOnlyList<RepositoryUpdates> updates = new RepositoryUpdates[]
+            IReadOnlyList<StorageUpdates> updates = new StorageUpdates[]
             {
-                new RepositoryUpdates(), new RepositoryUpdates(),
-                new RepositoryUpdates(), new RepositoryUpdates()
+                this.CreateEmptyUpdates(), this.CreateEmptyUpdates(),
+                this.CreateEmptyUpdates(), this.CreateEmptyUpdates()
             };
             A.CallTo(() => this.referenceRepoFake.DetectUpdates(this.repo1Fake)).Returns(updates[0]);
             A.CallTo(() => this.referenceRepoFake.DetectUpdates(this.repo2Fake)).Returns(updates[1]);
@@ -96,7 +96,7 @@ namespace StoragePoint.UnitTests
 
             this.syncService.Sync(this.repos, this.referenceRepoFake);
 
-            A.CallTo(() => this.mergerFake.Merge(A<IReadOnlyList<RepositoryUpdates>>.That.IsSameSequenceAs(updates)))
+            A.CallTo(() => this.mergerFake.Merge(A<IReadOnlyList<StorageUpdates>>.That.IsSameSequenceAs(updates)))
                 .MustHaveHappened(Repeated.Exactly.Once);
             Assert.Equal(4, this.repos.Length);
         }
@@ -104,8 +104,8 @@ namespace StoragePoint.UnitTests
         [Fact]
         public void SyncServiceSynchronization_AllReposAreCorrect_ItMustCallUpdateWithMergedUpdatesForAllRepos()
         {
-            RepositoryUpdates mergedUpdates = new RepositoryUpdates();
-            A.CallTo(() => this.mergerFake.Merge(A<IReadOnlyList<RepositoryUpdates>>.Ignored)).Returns(mergedUpdates);
+            StorageUpdates mergedUpdates = this.CreateEmptyUpdates();
+            A.CallTo(() => this.mergerFake.Merge(A<IReadOnlyList<StorageUpdates>>.Ignored)).Returns(mergedUpdates);
 
             this.syncService.Sync(this.repos, this.referenceRepoFake);
 
@@ -119,8 +119,8 @@ namespace StoragePoint.UnitTests
         [Fact]
         public void SyncServiceSynchronization_AllReposAreCorrect_ItMustCallUpdateWithMergedUpdatesForReferenceRepos()
         {
-            RepositoryUpdates mergedUpdates = new RepositoryUpdates();
-            A.CallTo(() => this.mergerFake.Merge(A<IReadOnlyList<RepositoryUpdates>>.Ignored)).Returns(mergedUpdates);
+            StorageUpdates mergedUpdates = this.CreateEmptyUpdates();
+            A.CallTo(() => this.mergerFake.Merge(A<IReadOnlyList<StorageUpdates>>.Ignored)).Returns(mergedUpdates);
 
             this.syncService.Sync(this.repos, this.referenceRepoFake);
 
@@ -172,6 +172,11 @@ namespace StoragePoint.UnitTests
 
             A.CallTo(() => this.referenceRepoFake.CopyAll(this.repo1Fake))
                 .MustHaveHappened(repeatedOnce ? Repeated.Exactly.Once : Repeated.Never);
+        }
+
+        private StorageUpdates CreateEmptyUpdates()
+        {
+            return new StorageUpdates(0, null, null, null, null, null);
         }
     }
 }

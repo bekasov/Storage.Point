@@ -4,6 +4,14 @@
 
     public class StorageContent
     {
-        public IReadOnlyList<FileModel> Files { get; set; }
+        public StorageContent(int storageId, IReadOnlyList<FileModel> files)
+        {
+            this.StorageId = storageId;
+            this.Files = files;
+        }
+
+        public int StorageId { get; }
+
+        public IReadOnlyList<FileModel> Files { get; }
     }
 }

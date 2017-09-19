@@ -9,7 +9,7 @@
 
     public class UpdatesDetector
     {
-        public RepositoryUpdates Detect(StorageContent referenceContent, StorageContent source)
+        public StorageUpdates Detect(StorageContent referenceContent, StorageContent source)
         {
             if (referenceContent == null)
             {
@@ -40,16 +40,17 @@
                 .Where(f => !addedFilesIds.Contains(f.FileOsId))
                 .ToList();
 
-            RepositoryUpdates result = new RepositoryUpdates
-            {
-                Added = addedFiles,
-                Removed = removedFiles,
-                Moved = this.DetectMovedFiles(referenceContent, source, removedFilesIds, addedFilesIds),
-                Renamed = renamedFiles,
-                Changed = this.DetectChangedFiles(referenceContent, source, removedFilesIds)
-            };
+            List<FileModel> changedFiles = this.DetectChangedFiles(referenceContent, source, removedFilesIds);
 
-            return result;
+            List<FileModel> movedFiles = this.DetectMovedFiles(referenceContent, source, removedFilesIds, addedFilesIds);
+
+            return new StorageUpdates(
+                source.StorageId, 
+                addedFiles, 
+                removedFiles, 
+                changedFiles, 
+                renamedFiles, 
+                movedFiles);
         }
 
         private List<FileModel> GetSource2ExceptSource1(

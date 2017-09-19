@@ -10,8 +10,8 @@
 
         StorageContent GetAll();
 
-        RepositoryUpdates DetectUpdates(IFileRepository source);
+        StorageUpdates DetectUpdates(IFileRepository source);
 
-        void Update(RepositoryUpdates updates);
+        void Update(StorageUpdates updates);
     }
 }
