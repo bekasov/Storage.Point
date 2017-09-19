@@ -5,9 +5,10 @@
     using System.Linq;
     using System.Threading.Tasks;
 
+    using StoragePoint.Contracts.Domain.FileStorage;
+    using StoragePoint.Contracts.Domain.FileStorage.Model;
+    using StoragePoint.Contracts.Domain.Service;
     using StoragePoint.Domain.Exceptions;
-    using StoragePoint.Domain.Model;
-    using StoragePoint.Domain.Repository;
 
     public class SyncService
     {

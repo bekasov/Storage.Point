@@ -1,4 +1,4 @@
-﻿namespace StoragePoint.Domain.Model
+﻿namespace StoragePoint.Contracts.Domain.FileStorage.Model
 {
     using System;
 

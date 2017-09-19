@@ -3,7 +3,7 @@
     using System;
     using System.Collections.Generic;
 
-    using StoragePoint.Domain.Model;
+    using StoragePoint.Contracts.Domain.FileStorage.Model;
 
     public class FileOsIdsAndNamesComparator : IEqualityComparer<FileModel>
     {

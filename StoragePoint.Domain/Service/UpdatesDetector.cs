@@ -4,7 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
 
-    using StoragePoint.Domain.Model;
+    using StoragePoint.Contracts.Domain.FileStorage.Model;
     using StoragePoint.Domain.Service.Comparator;
 
     public class UpdatesDetector
@@ -57,11 +57,7 @@
             IReadOnlyList<FileModel> source2,
             IEqualityComparer<FileModel> comparator)
         {
-            List<FileModel> result = source2
-                .Except(source1, comparator)
-                .ToList();
-
-            return result;
+            return source2.Except(source1, comparator).ToList();
         }
 
         private List<FileModel> DetectMovedFiles(

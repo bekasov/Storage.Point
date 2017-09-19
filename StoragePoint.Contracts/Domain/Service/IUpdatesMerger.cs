@@ -1,8 +1,8 @@
-﻿namespace StoragePoint.Domain.Service
+﻿namespace StoragePoint.Contracts.Domain.Service
 {
     using System.Collections.Generic;
 
-    using StoragePoint.Domain.Model;
+    using StoragePoint.Contracts.Domain.FileStorage.Model;
 
     public interface IUpdatesMerger
     {

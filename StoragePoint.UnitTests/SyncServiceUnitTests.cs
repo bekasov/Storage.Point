@@ -3,10 +3,11 @@ namespace StoragePoint.UnitTests
     using System.Collections.Generic;
 
     using FakeItEasy;
-    using StoragePoint.Domain;
+
+    using StoragePoint.Contracts.Domain.FileStorage;
+    using StoragePoint.Contracts.Domain.FileStorage.Model;
+    using StoragePoint.Contracts.Domain.Service;
     using StoragePoint.Domain.Exceptions;
-    using StoragePoint.Domain.Model;
-    using StoragePoint.Domain.Repository;
     using StoragePoint.Domain.Service;
 
     using Xunit;

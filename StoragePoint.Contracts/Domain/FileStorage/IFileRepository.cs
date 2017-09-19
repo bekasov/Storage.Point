@@ -1,6 +1,6 @@
-﻿namespace StoragePoint.Domain.Repository
+﻿namespace StoragePoint.Contracts.Domain.FileStorage
 {
-    using StoragePoint.Domain.Model;
+    using StoragePoint.Contracts.Domain.FileStorage.Model;
 
     public interface IFileRepository
     {

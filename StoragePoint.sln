@@ -1,11 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26730.12
+VisualStudioVersion = 15.0.26730.15
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StoragePoint.UnitTests", "StoragePoint.UnitTests\StoragePoint.UnitTests.csproj", "{44FAC3AB-C618-417B-8A9D-87B0950EB30F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StoragePoint.Domain", "StoragePoint.Domain\StoragePoint.Domain.csproj", "{2E25E5E3-1C26-47F0-BCF2-094C784C77F9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StoragePoint.Domain", "StoragePoint.Domain\StoragePoint.Domain.csproj", "{2E25E5E3-1C26-47F0-BCF2-094C784C77F9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StoragePoint.Infrastructure", "StoragePoint.Infrastructure\StoragePoint.Infrastructure.csproj", "{A1F110B7-5164-4D19-ADA4-E27F007FEACB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StoragePoint.Contracts", "StoragePoint.Contracts\StoragePoint.Contracts.csproj", "{892F8129-2FB6-446F-8FAF-F82ED0574F56}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +25,14 @@ Global
 		{2E25E5E3-1C26-47F0-BCF2-094C784C77F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2E25E5E3-1C26-47F0-BCF2-094C784C77F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2E25E5E3-1C26-47F0-BCF2-094C784C77F9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1F110B7-5164-4D19-ADA4-E27F007FEACB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1F110B7-5164-4D19-ADA4-E27F007FEACB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1F110B7-5164-4D19-ADA4-E27F007FEACB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1F110B7-5164-4D19-ADA4-E27F007FEACB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{892F8129-2FB6-446F-8FAF-F82ED0574F56}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{892F8129-2FB6-446F-8FAF-F82ED0574F56}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{892F8129-2FB6-446F-8FAF-F82ED0574F56}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{892F8129-2FB6-446F-8FAF-F82ED0574F56}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

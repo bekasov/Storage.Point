@@ -11,6 +11,8 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.2.0" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\StoragePoint.Contracts\StoragePoint.Contracts.csproj" />
     <ProjectReference Include="..\StoragePoint.Domain\StoragePoint.Domain.csproj" />
+    <ProjectReference Include="..\StoragePoint.Infrastructure\StoragePoint.Infrastructure.csproj" />
   </ItemGroup>
 </Project>

@@ -1,4 +1,4 @@
-﻿namespace StoragePoint.Domain.Repository
+﻿namespace StoragePoint.Contracts.Domain.FileStorage
 {
     public interface IFileReferenceRepository : IFileRepository
     {

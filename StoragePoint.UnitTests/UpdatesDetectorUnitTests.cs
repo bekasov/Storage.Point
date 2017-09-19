@@ -4,7 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
 
-    using StoragePoint.Domain.Model;
+    using StoragePoint.Contracts.Domain.FileStorage.Model;
     using StoragePoint.Domain.Service;
     using StoragePoint.UnitTests.Helper;
 
