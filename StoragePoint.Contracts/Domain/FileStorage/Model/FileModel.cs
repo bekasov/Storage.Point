@@ -15,6 +15,8 @@
         
         public int FileOsId { get; set; }
 
+        public int FileStorageId { get; set; }
+
         public FileType FileType { get; set; }
 
         public int ParentFileOsId { get; set; }
