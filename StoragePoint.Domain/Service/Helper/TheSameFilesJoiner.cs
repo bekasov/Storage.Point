@@ -4,12 +4,12 @@ using StoragePoint.Contracts.Domain.FileStorage.Model;
 
 namespace StoragePoint.Domain.Service.Helper
 {
-    internal interface IListFilesJoiner
+    public interface IUpdatedFilesJoiner
     {
         IList<FileModel> JoinTheSame(IReadOnlyList<FileModel> files);
     }
 
-    internal class TheSameFilesJoiner : IListFilesJoiner
+    public class TheSameFilesJoiner : IUpdatedFilesJoiner
     {
         public IList<FileModel> JoinTheSame(IReadOnlyList<FileModel> files)
         {

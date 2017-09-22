@@ -1,4 +1,6 @@
-﻿namespace StoragePoint.Domain.Service
+﻿using StoragePoint.Domain.Service.Helper;
+
+namespace StoragePoint.Domain.Service
 {
     using System.Collections.Generic;
     using System.Linq;
@@ -11,12 +13,14 @@
 
     public class UpdatesMerger : IUpdatesMerger
     {
-        private readonly IPathBuilder pathBuilder;
+        //private readonly IPathBuilder pathBuilder;
 
-        public UpdatesMerger(IPathBuilder pathBuilder)
+        public UpdatesMerger()
         {
-            this.pathBuilder = pathBuilder;
+            //this.pathBuilder = pathBuilder;
         }
+
+        public IUpdatedFilesJoiner FilesJoiner { private get; set; } = new TheSameFilesJoiner();
 
         public StorageUpdates Merge(IReadOnlyList<StorageUpdates> updates)
         {
@@ -32,23 +36,23 @@
                 {
                     allAdded.AddRange(u.Added);
                     allRemoved.AddRange(u.Removed);
-                    allChanged.AddRange(u.Changed);
+                    allChanged.AddRange(u.Updated);
                     allRenamed.AddRange(u.Renamed);
                     allMoved.AddRange(u.Moved);
                 });
 
-            IList<FileModel> joinedAdded;
+            IList<FileModel> joinedAdded = this.FilesJoiner.JoinTheSame(allAdded);
             IList<FileModel> joinedRemoved;
             IList<FileModel> joinedChanged;
             IList<FileModel> joinedRenamed;
             IList<FileModel> joinedMoved;
 
-            Parallel.Invoke(
-                () => joinedAdded = this.JoinTheSameFiles(allAdded), 
-                () => joinedRemoved = this.JoinTheSameFiles(allRemoved), 
-                () => joinedChanged = this.JoinTheSameFiles(allChanged), 
-                () => joinedRenamed = this.JoinTheSameFiles(allRenamed), 
-                () => joinedMoved = this.JoinTheSameFiles(allMoved));
+//            Parallel.Invoke(
+//                () => joinedAdded = this.FilesJoiner.JoinTheSame(allAdded), 
+//                () => joinedRemoved = this.FilesJoiner.JoinTheSame(allRemoved), 
+//                () => joinedChanged = this.FilesJoiner.JoinTheSame(allChanged), 
+//                () => joinedRenamed = this.FilesJoiner.JoinTheSame(allRenamed), 
+//                () => joinedMoved = this.FilesJoiner.JoinTheSame(allMoved));
 
             
             
@@ -62,16 +66,11 @@
 //                {
 //                    allAdded.AddRange(this.pathBuilder.GetPaths(u.Added));
 //                    allRemoved.AddRange(this.pathBuilder.GetPaths(u.Removed));
-//                    allChanged.AddRange(this.pathBuilder.GetPaths(u.Changed));
+//                    allChanged.AddRange(this.pathBuilder.GetPaths(u.Updated));
 //                    allRenamed.AddRange(this.pathBuilder.GetPaths(u.Renamed));
 //                    allMoved.AddRange(this.pathBuilder.GetPaths(u.Moved));
 //                });
 
-            return null;
-        }
-
-        private IList<FileModel> JoinTheSameFiles(IReadOnlyList<FileModel> files)
-        {
             return null;
         }
     }

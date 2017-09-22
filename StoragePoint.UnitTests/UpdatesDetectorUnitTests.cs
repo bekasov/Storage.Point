@@ -128,10 +128,10 @@
         {
             StorageUpdates actualUpdates = this.detector.Detect(this.referenceContent, this.sourceContent);
 
-            Assert.Equal(3, actualUpdates.Changed.Count);
-            Assert.True(actualUpdates.Changed.Any(f => f.FileOsId == 13));
-            Assert.True(actualUpdates.Changed.Any(f => f.FileOsId == 09));
-            Assert.True(actualUpdates.Changed.Any(f => f.FileOsId == 10));
+            Assert.Equal(3, actualUpdates.Updated.Count);
+            Assert.True(actualUpdates.Updated.Any(f => f.FileOsId == 13));
+            Assert.True(actualUpdates.Updated.Any(f => f.FileOsId == 09));
+            Assert.True(actualUpdates.Updated.Any(f => f.FileOsId == 10));
         }
 
         private FileModel[] CreateReferenceContent()

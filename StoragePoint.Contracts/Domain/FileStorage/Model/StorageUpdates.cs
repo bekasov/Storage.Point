@@ -8,14 +8,14 @@
             int storageId, 
             IReadOnlyList<FileModel> added, 
             IReadOnlyList<FileModel> removed, 
-            IReadOnlyList<FileModel> changed, 
+            IReadOnlyList<FileModel> updated, 
             IReadOnlyList<FileModel> renamed, 
             IReadOnlyList<FileModel> moved)
         {
             this.StorageId = storageId;
             this.Added = added;
             this.Removed = removed;
-            this.Changed = changed;
+            this.Updated = updated;
             this.Renamed = renamed;
             this.Moved = moved;
         }
@@ -26,7 +26,7 @@
 
         public IReadOnlyList<FileModel> Removed { get; }
 
-        public IReadOnlyList<FileModel> Changed { get; }
+        public IReadOnlyList<FileModel> Updated { get; }
 
         public IReadOnlyList<FileModel> Renamed { get; }
 
