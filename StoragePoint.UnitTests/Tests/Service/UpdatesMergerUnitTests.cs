@@ -1,16 +1,12 @@
-﻿using System.Linq;
-using StoragePoint.Domain.Service.Helper;
-
-namespace StoragePoint.UnitTests
+﻿namespace StoragePoint.UnitTests.Tests.Service
 {
-    using System;
     using System.Collections.Generic;
 
     using FakeItEasy;
 
     using StoragePoint.Contracts.Domain.FileStorage.Model;
-    using StoragePoint.Contracts.Infrastructure.Service;
     using StoragePoint.Domain.Service;
+    using StoragePoint.Domain.Service.Helper;
 
     using Xunit;
 
@@ -65,25 +61,20 @@ namespace StoragePoint.UnitTests
             this.merger.Merge(changes);
 
             A.CallTo(() => this.filesJoiner.JoinTheSame(
-                A<IReadOnlyList<FileModel>>.That.Matches(s => s.Count == 2 && s.Contains(addedFile1) && s.Contains(addedFile2))
-            )).MustHaveHappened(Repeated.Exactly.Once);
+                A<IReadOnlyList<FileModel>>.That.IsSameSequenceAs(new FileModel[] { addedFile1, addedFile2 })))
+                .MustHaveHappened(Repeated.Exactly.Once);
             A.CallTo(() => this.filesJoiner.JoinTheSame(
-                A<IReadOnlyList<FileModel>>.That.IsSameSequenceAs(new FileModel[] { removedFile1, removedFile2 })
-            )).MustHaveHappened(Repeated.Exactly.Once);
+                A<IReadOnlyList<FileModel>>.That.IsSameSequenceAs(new FileModel[] { removedFile1, removedFile2 })))
+                .MustHaveHappened(Repeated.Exactly.Once);
             A.CallTo(() => this.filesJoiner.JoinTheSame(
-                A<IReadOnlyList<FileModel>>.That.IsSameSequenceAs(new FileModel[] { updatedFile1, updatedFile2 })
-            )).MustHaveHappened(Repeated.Exactly.Once);
+                A<IReadOnlyList<FileModel>>.That.IsSameSequenceAs(new FileModel[] { updatedFile1, updatedFile2 })))
+                .MustHaveHappened(Repeated.Exactly.Once);
             A.CallTo(() => this.filesJoiner.JoinTheSame(
-                A<IReadOnlyList<FileModel>>.That.IsSameSequenceAs(new FileModel[] { renamedFile1, renamedFile2 })
-            )).MustHaveHappened(Repeated.Exactly.Once);
+                A<IReadOnlyList<FileModel>>.That.IsSameSequenceAs(new FileModel[] { renamedFile1, renamedFile2 })))
+                .MustHaveHappened(Repeated.Exactly.Once);
             A.CallTo(() => this.filesJoiner.JoinTheSame(
-                A<IReadOnlyList<FileModel>>.That.IsSameSequenceAs(new FileModel[] { movedFile1, movedFile2 })
-            )).MustHaveHappened(Repeated.Exactly.Once);
-        }
-
-        private StorageUpdates CreateEmptyUpdates()
-        {
-            return new StorageUpdates(0, new FileModel[0], new FileModel[0], new FileModel[0], new FileModel[0], new FileModel[0]);
+                A<IReadOnlyList<FileModel>>.That.IsSameSequenceAs(new FileModel[] { movedFile1, movedFile2 })))
+                .MustHaveHappened(Repeated.Exactly.Once);
         }
     }
 }

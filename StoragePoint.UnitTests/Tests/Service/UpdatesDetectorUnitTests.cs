@@ -1,4 +1,4 @@
-﻿namespace StoragePoint.UnitTests
+﻿namespace StoragePoint.UnitTests.Tests.Service
 {
     using System;
     using System.Collections.Generic;
@@ -62,7 +62,7 @@
                 new StorageContent(0, new FileModel[0]), this.sourceContent);
 
             Assert.Equal(this.sourceContent.Files.Count, actualUpdates.Added.Count);
-            Assert.Contains(actualUpdates.Added, f => this.sourceContent.Files.Contains(f));
+            Assert.Contains(actualUpdates.Added, f => Enumerable.Contains(this.sourceContent.Files, f));
         }
 
         [Fact]
@@ -95,7 +95,7 @@
                 new StorageContent(0, new FileModel[0]));
 
             Assert.Equal(this.referenceContent.Files.Count, actualUpdates.Removed.Count);
-            Assert.Contains(actualUpdates.Removed, f => this.referenceContent.Files.Contains(f));
+            Assert.Contains(actualUpdates.Removed, f => Enumerable.Contains(this.referenceContent.Files, f));
         }
 
         [Fact]

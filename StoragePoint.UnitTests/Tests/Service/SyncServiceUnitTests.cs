@@ -1,13 +1,13 @@
-namespace StoragePoint.UnitTests
+namespace StoragePoint.UnitTests.Tests.Service
 {
     using System.Collections.Generic;
 
     using FakeItEasy;
 
+    using StoragePoint.Contracts.Domain.Exceptions;
     using StoragePoint.Contracts.Domain.FileStorage;
     using StoragePoint.Contracts.Domain.FileStorage.Model;
     using StoragePoint.Contracts.Domain.Service;
-    using StoragePoint.Domain.Exceptions;
     using StoragePoint.Domain.Service;
 
     using Xunit;
@@ -29,18 +29,18 @@ namespace StoragePoint.UnitTests
         public SyncServiceUnitTests()
         {
             this.repo1Fake = A.Fake<IFileRepository>();
-            A.CallTo(() => this.repo1Fake.IsInitialized).Returns(false);
+            A.CallTo<bool>(() => this.repo1Fake.IsInitialized).Returns(false);
             this.repo2Fake = A.Fake<IFileRepository>();
-            A.CallTo(() => this.repo2Fake.IsInitialized).Returns(false);
+            A.CallTo<bool>(() => this.repo2Fake.IsInitialized).Returns(false);
             this.repo3Fake = A.Fake<IFileRepository>();
-            A.CallTo(() => this.repo3Fake.IsInitialized).Returns(false);
+            A.CallTo<bool>(() => this.repo3Fake.IsInitialized).Returns(false);
             this.repo4Fake = A.Fake<IFileRepository>();
-            A.CallTo(() => this.repo4Fake.IsInitialized).Returns(false);
+            A.CallTo<bool>(() => this.repo4Fake.IsInitialized).Returns(false);
 
             this.repos = new IFileRepository[] { this.repo1Fake, this.repo2Fake, this.repo3Fake, this.repo4Fake };
 
             this.referenceRepoFake = A.Fake<IFileReferenceRepository>();
-            A.CallTo(() => this.referenceRepoFake.IsInitialized).Returns(true);
+            A.CallTo<bool>(() => this.referenceRepoFake.IsInitialized).Returns(true);
 
             this.mergerFake = A.Fake<IUpdatesMerger>();
 
@@ -50,7 +50,7 @@ namespace StoragePoint.UnitTests
         [Fact]
         public void SyncServiceEdges_ReferenceNotInitialized_ItMustThrowReferenceNotInitException()
         {
-            A.CallTo(() => this.referenceRepoFake.IsInitialized).Returns(false);
+            A.CallTo<bool>(() => this.referenceRepoFake.IsInitialized).Returns(false);
 
             Assert.Throws<RepositoryNotInitialized>(() => this.syncService.Sync(this.repos, this.referenceRepoFake));
         }
@@ -58,7 +58,7 @@ namespace StoragePoint.UnitTests
         [Fact]
         public void SyncServiceEdges_ThereIsAtLeastEmptyRepo_ItMustThrowAllReposMustBeInitException()
         {
-            A.CallTo(() => this.repo2Fake.IsInitialized).Returns(true);
+            A.CallTo<bool>(() => this.repo2Fake.IsInitialized).Returns(true);
 
             Assert.Throws<AllRepositoriesMustBeInitialized>(
                 () => this.syncService.Sync(this.repos, this.referenceRepoFake));
@@ -69,13 +69,13 @@ namespace StoragePoint.UnitTests
         {
             this.syncService.Sync(this.repos, this.referenceRepoFake);
 
-            A.CallTo(() => this.referenceRepoFake.DetectUpdates(this.repo1Fake))
+            A.CallTo<StorageUpdates>(() => this.referenceRepoFake.DetectUpdates(this.repo1Fake))
                 .MustHaveHappened(Repeated.Exactly.Once);
-            A.CallTo(() => this.referenceRepoFake.DetectUpdates(this.repo2Fake))
+            A.CallTo<StorageUpdates>(() => this.referenceRepoFake.DetectUpdates(this.repo2Fake))
                 .MustHaveHappened(Repeated.Exactly.Once);
-            A.CallTo(() => this.referenceRepoFake.DetectUpdates(this.repo3Fake))
+            A.CallTo<StorageUpdates>(() => this.referenceRepoFake.DetectUpdates(this.repo3Fake))
                 .MustHaveHappened(Repeated.Exactly.Once);
-            A.CallTo(() => this.referenceRepoFake.DetectUpdates(this.repo4Fake))
+            A.CallTo<StorageUpdates>(() => this.referenceRepoFake.DetectUpdates(this.repo4Fake))
                 .MustHaveHappened(Repeated.Exactly.Once);
             Assert.Equal(4, this.repos.Length);
         }
@@ -88,15 +88,15 @@ namespace StoragePoint.UnitTests
                 this.CreateEmptyUpdates(), this.CreateEmptyUpdates(),
                 this.CreateEmptyUpdates(), this.CreateEmptyUpdates()
             };
-            A.CallTo(() => this.referenceRepoFake.DetectUpdates(this.repo1Fake)).Returns(updates[0]);
-            A.CallTo(() => this.referenceRepoFake.DetectUpdates(this.repo2Fake)).Returns(updates[1]);
-            A.CallTo(() => this.referenceRepoFake.DetectUpdates(this.repo3Fake)).Returns(updates[2]);
-            A.CallTo(() => this.referenceRepoFake.DetectUpdates(this.repo4Fake)).Returns(updates[3]);
+            A.CallTo<StorageUpdates>(() => this.referenceRepoFake.DetectUpdates(this.repo1Fake)).Returns(updates[0]);
+            A.CallTo<StorageUpdates>(() => this.referenceRepoFake.DetectUpdates(this.repo2Fake)).Returns(updates[1]);
+            A.CallTo<StorageUpdates>(() => this.referenceRepoFake.DetectUpdates(this.repo3Fake)).Returns(updates[2]);
+            A.CallTo<StorageUpdates>(() => this.referenceRepoFake.DetectUpdates(this.repo4Fake)).Returns(updates[3]);
 
 
             this.syncService.Sync(this.repos, this.referenceRepoFake);
 
-            A.CallTo(() => this.mergerFake.Merge(A<IReadOnlyList<StorageUpdates>>.That.IsSameSequenceAs(updates)))
+            A.CallTo<StorageUpdates>(() => this.mergerFake.Merge(A<IReadOnlyList<StorageUpdates>>.That.IsSameSequenceAs(updates)))
                 .MustHaveHappened(Repeated.Exactly.Once);
             Assert.Equal(4, this.repos.Length);
         }
@@ -105,7 +105,7 @@ namespace StoragePoint.UnitTests
         public void SyncServiceSynchronization_AllReposAreCorrect_ItMustCallUpdateWithMergedUpdatesForAllRepos()
         {
             StorageUpdates mergedUpdates = this.CreateEmptyUpdates();
-            A.CallTo(() => this.mergerFake.Merge(A<IReadOnlyList<StorageUpdates>>.Ignored)).Returns(mergedUpdates);
+            A.CallTo<StorageUpdates>(() => this.mergerFake.Merge(A<IReadOnlyList<StorageUpdates>>.Ignored)).Returns(mergedUpdates);
 
             this.syncService.Sync(this.repos, this.referenceRepoFake);
 
@@ -120,7 +120,7 @@ namespace StoragePoint.UnitTests
         public void SyncServiceSynchronization_AllReposAreCorrect_ItMustCallUpdateWithMergedUpdatesForReferenceRepos()
         {
             StorageUpdates mergedUpdates = this.CreateEmptyUpdates();
-            A.CallTo(() => this.mergerFake.Merge(A<IReadOnlyList<StorageUpdates>>.Ignored)).Returns(mergedUpdates);
+            A.CallTo<StorageUpdates>(() => this.mergerFake.Merge(A<IReadOnlyList<StorageUpdates>>.Ignored)).Returns(mergedUpdates);
 
             this.syncService.Sync(this.repos, this.referenceRepoFake);
 
@@ -130,7 +130,7 @@ namespace StoragePoint.UnitTests
         [Fact]
         public void SyncServiceInitReposEdges_ReferenceNotInitialized_ItMustThrowReferenceNotInitException()
         {
-            A.CallTo(() => this.referenceRepoFake.IsInitialized).Returns(false);
+            A.CallTo<bool>(() => this.referenceRepoFake.IsInitialized).Returns(false);
 
             Assert.Throws<RepositoryNotInitialized>(() => this.syncService.InitRepositories(this.repos, this.referenceRepoFake));
         }
@@ -138,10 +138,10 @@ namespace StoragePoint.UnitTests
         [Fact]
         public void SyncServiceInitRepos_FillEmptyRepos_ItMustCallCopyAllForAllUninitRepos()
         {
-            A.CallTo(() => this.repo1Fake.IsInitialized).Returns(false);
-            A.CallTo(() => this.repo2Fake.IsInitialized).Returns(true);
-            A.CallTo(() => this.repo3Fake.IsInitialized).Returns(true);
-            A.CallTo(() => this.repo4Fake.IsInitialized).Returns(false);
+            A.CallTo<bool>(() => this.repo1Fake.IsInitialized).Returns(false);
+            A.CallTo<bool>(() => this.repo2Fake.IsInitialized).Returns(true);
+            A.CallTo<bool>(() => this.repo3Fake.IsInitialized).Returns(true);
+            A.CallTo<bool>(() => this.repo4Fake.IsInitialized).Returns(false);
 
             this.syncService.InitRepositories(this.repos, this.referenceRepoFake);
 
@@ -157,7 +157,7 @@ namespace StoragePoint.UnitTests
         {
             this.syncService.InitReference(this.referenceRepoFake, this.repo1Fake);
 
-            A.CallTo(() => this.referenceRepoFake.IsInitialized).MustHaveHappened(Repeated.Exactly.Once);
+            A.CallTo<bool>(() => this.referenceRepoFake.IsInitialized).MustHaveHappened(Repeated.Exactly.Once);
         }
 
         [Theory]
@@ -166,7 +166,7 @@ namespace StoragePoint.UnitTests
         public void SyncServiceInitReference_AllKindsOfReferences_ItMustCallCopyAllOnlyForUninitialized(
                 bool isInitialized, bool repeatedOnce)
         {
-            A.CallTo(() => this.referenceRepoFake.IsInitialized).Returns(isInitialized);
+            A.CallTo<bool>(() => this.referenceRepoFake.IsInitialized).Returns(isInitialized);
 
             this.syncService.InitReference(this.referenceRepoFake, this.repo1Fake);
 

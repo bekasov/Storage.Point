@@ -1,15 +1,16 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using StoragePoint.Contracts.Domain.FileStorage.Model;
-
-namespace StoragePoint.Domain.Service.Helper
+﻿namespace StoragePoint.Domain.Service.Helper
 {
+    using System.Collections.Generic;
+    using System.Linq;
+
+    using StoragePoint.Contracts.Domain.FileStorage.Model;
+
     public interface IUpdatedFilesJoiner
     {
         IList<FileModel> JoinTheSame(IReadOnlyList<FileModel> files);
     }
 
-    public class TheSameFilesJoiner : IUpdatedFilesJoiner
+    public class UpdatedFilesJoiner : IUpdatedFilesJoiner
     {
         public IList<FileModel> JoinTheSame(IReadOnlyList<FileModel> files)
         {

@@ -1,4 +1,4 @@
-﻿namespace StoragePoint.Domain.Exceptions
+﻿namespace StoragePoint.Contracts.Domain.Exceptions
 {
     using System;
 
