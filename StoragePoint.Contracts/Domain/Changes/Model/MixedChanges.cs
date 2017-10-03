@@ -1,10 +1,12 @@
-﻿namespace StoragePoint.Contracts.Domain.FileStorage.Model
+﻿namespace StoragePoint.Contracts.Domain.Changes.Model
 {
     using System.Collections.Generic;
 
-    public class StorageUpdates
+    using StoragePoint.Contracts.Domain.FileStorage.Model;
+
+    public class MixedChanges
     {
-        public StorageUpdates(
+        public MixedChanges(
             int storageId, 
             IReadOnlyList<FileModel> added, 
             IReadOnlyList<FileModel> removed, 

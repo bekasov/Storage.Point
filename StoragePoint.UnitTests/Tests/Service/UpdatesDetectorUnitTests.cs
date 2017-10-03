@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
 
+    using StoragePoint.Contracts.Domain.Changes.Model;
     using StoragePoint.Contracts.Domain.FileStorage.Model;
     using StoragePoint.Domain.Service;
     using StoragePoint.UnitTests.Helper;
@@ -44,94 +45,94 @@
         [Fact]
         public void UpdatesDetectorNewFiles_CorrectArgs_ItMustAddNewFilesToResult()
         {
-            StorageUpdates actualUpdates = this.detector.Detect(this.referenceContent, this.sourceContent);
+            MixedChanges actualChanges = this.detector.Detect(this.referenceContent, this.sourceContent);
 
-            Assert.Equal(6, actualUpdates.Added.Count);
-            Assert.True(actualUpdates.Added.Any(f => f.FileOsId == 17));
-            Assert.True(actualUpdates.Added.Any(f => f.FileOsId == 18));
-            Assert.True(actualUpdates.Added.Any(f => f.FileOsId == 19));
-            Assert.True(actualUpdates.Added.Any(f => f.FileOsId == 20));
-            Assert.True(actualUpdates.Added.Any(f => f.FileOsId == 21));
-            Assert.True(actualUpdates.Added.Any(f => f.FileOsId == 22));
+            Assert.Equal(6, actualChanges.Added.Count);
+            Assert.True(actualChanges.Added.Any(f => f.FileOsId == 17));
+            Assert.True(actualChanges.Added.Any(f => f.FileOsId == 18));
+            Assert.True(actualChanges.Added.Any(f => f.FileOsId == 19));
+            Assert.True(actualChanges.Added.Any(f => f.FileOsId == 20));
+            Assert.True(actualChanges.Added.Any(f => f.FileOsId == 21));
+            Assert.True(actualChanges.Added.Any(f => f.FileOsId == 22));
         }
 
         [Fact]
         public void UpdatesDetectorNewFiles_EmptyReference_ItMustAddAllNewFilesToResult()
         {
-            StorageUpdates actualUpdates = this.detector.Detect(
+            MixedChanges actualChanges = this.detector.Detect(
                 new StorageContent(0, new FileModel[0]), this.sourceContent);
 
-            Assert.Equal(this.sourceContent.Files.Count, actualUpdates.Added.Count);
-            Assert.Contains(actualUpdates.Added, f => Enumerable.Contains(this.sourceContent.Files, f));
+            Assert.Equal(this.sourceContent.Files.Count, actualChanges.Added.Count);
+            Assert.Contains(actualChanges.Added, f => Enumerable.Contains(this.sourceContent.Files, f));
         }
 
         [Fact]
         public void UpdatesDetectorNewFiles_EmptyReferenceAndSource_ItMustNotAddAnyNewFilesToResult()
         {
-            StorageUpdates actualUpdates = this.detector.Detect(
+            MixedChanges actualChanges = this.detector.Detect(
                 new StorageContent(0, new FileModel[0]),
                 new StorageContent(0, new FileModel[0]));
 
-            Assert.Equal(0, actualUpdates.Added.Count);
+            Assert.Equal(0, actualChanges.Added.Count);
         }
 
         [Fact]
         public void UpdatesDetectorRemovedFiles_CorrectArgs_ItMustAddRemovedFilesToResult()
         {
-            StorageUpdates actualUpdates = this.detector.Detect(this.referenceContent, this.sourceContent);
+            MixedChanges actualChanges = this.detector.Detect(this.referenceContent, this.sourceContent);
 
-            Assert.Equal(4, actualUpdates.Removed.Count);
-            Assert.True(actualUpdates.Removed.Any(f => f.FileOsId == 04));
-            Assert.True(actualUpdates.Removed.Any(f => f.FileOsId == 14));
-            Assert.True(actualUpdates.Removed.Any(f => f.FileOsId == 15));
-            Assert.True(actualUpdates.Removed.Any(f => f.FileOsId == 16));
+            Assert.Equal(4, actualChanges.Removed.Count);
+            Assert.True(actualChanges.Removed.Any(f => f.FileOsId == 04));
+            Assert.True(actualChanges.Removed.Any(f => f.FileOsId == 14));
+            Assert.True(actualChanges.Removed.Any(f => f.FileOsId == 15));
+            Assert.True(actualChanges.Removed.Any(f => f.FileOsId == 16));
         }
 
         [Fact]
         public void UpdatesDetectorRemovedFiles_EmptySource_ItMustAddAllFilesToResult()
         {
-            StorageUpdates actualUpdates = this.detector.Detect(
+            MixedChanges actualChanges = this.detector.Detect(
                 this.referenceContent,
                 new StorageContent(0, new FileModel[0]));
 
-            Assert.Equal(this.referenceContent.Files.Count, actualUpdates.Removed.Count);
-            Assert.Contains(actualUpdates.Removed, f => Enumerable.Contains(this.referenceContent.Files, f));
+            Assert.Equal(this.referenceContent.Files.Count, actualChanges.Removed.Count);
+            Assert.Contains(actualChanges.Removed, f => Enumerable.Contains(this.referenceContent.Files, f));
         }
 
         [Fact]
         public void UpdatesDetectorMovingFiles_CorrectArgs_ItMustAddMovedFilesInfoInResult()
         {
-            StorageUpdates actualUpdates = this.detector.Detect(this.referenceContent, this.sourceContent);
+            MixedChanges actualChanges = this.detector.Detect(this.referenceContent, this.sourceContent);
 
-            Assert.Equal(5, actualUpdates.Moved.Count);
-            Assert.True(actualUpdates.Moved.Any(f => f.FileOsId == 08));
-            Assert.True(actualUpdates.Moved.Any(f => f.FileOsId == 11));
-            Assert.True(actualUpdates.Moved.Any(f => f.FileOsId == 12));
-            Assert.True(actualUpdates.Moved.Any(f => f.FileOsId == 13));
-            Assert.True(actualUpdates.Moved.Any(f => f.FileOsId == 06));
+            Assert.Equal(5, actualChanges.Moved.Count);
+            Assert.True(actualChanges.Moved.Any(f => f.FileOsId == 08));
+            Assert.True(actualChanges.Moved.Any(f => f.FileOsId == 11));
+            Assert.True(actualChanges.Moved.Any(f => f.FileOsId == 12));
+            Assert.True(actualChanges.Moved.Any(f => f.FileOsId == 13));
+            Assert.True(actualChanges.Moved.Any(f => f.FileOsId == 06));
         }
 
         [Fact]
         public void UpdatesDetectorRenamingFiles_CorrectArgs_ItMustAddRenamedFilesInfoInResult()
         {
-            StorageUpdates actualUpdates = this.detector.Detect(this.referenceContent, this.sourceContent);
+            MixedChanges actualChanges = this.detector.Detect(this.referenceContent, this.sourceContent);
 
-            Assert.Equal(4, actualUpdates.Renamed.Count);
-            Assert.True(actualUpdates.Renamed.Any(f => f.FileOsId == 03));
-            Assert.True(actualUpdates.Renamed.Any(f => f.FileOsId == 09));
-            Assert.True(actualUpdates.Renamed.Any(f => f.FileOsId == 11));
-            Assert.True(actualUpdates.Renamed.Any(f => f.FileOsId == 13));
+            Assert.Equal(4, actualChanges.Renamed.Count);
+            Assert.True(actualChanges.Renamed.Any(f => f.FileOsId == 03));
+            Assert.True(actualChanges.Renamed.Any(f => f.FileOsId == 09));
+            Assert.True(actualChanges.Renamed.Any(f => f.FileOsId == 11));
+            Assert.True(actualChanges.Renamed.Any(f => f.FileOsId == 13));
         }
 
         [Fact]
         public void UpdatesDetectorChangingFiles_CorrectArgs_ItMustAddUpdatedFilesInfoInResult()
         {
-            StorageUpdates actualUpdates = this.detector.Detect(this.referenceContent, this.sourceContent);
+            MixedChanges actualChanges = this.detector.Detect(this.referenceContent, this.sourceContent);
 
-            Assert.Equal(3, actualUpdates.Updated.Count);
-            Assert.True(actualUpdates.Updated.Any(f => f.FileOsId == 13));
-            Assert.True(actualUpdates.Updated.Any(f => f.FileOsId == 09));
-            Assert.True(actualUpdates.Updated.Any(f => f.FileOsId == 10));
+            Assert.Equal(3, actualChanges.Updated.Count);
+            Assert.True(actualChanges.Updated.Any(f => f.FileOsId == 13));
+            Assert.True(actualChanges.Updated.Any(f => f.FileOsId == 09));
+            Assert.True(actualChanges.Updated.Any(f => f.FileOsId == 10));
         }
 
         private FileModel[] CreateReferenceContent()

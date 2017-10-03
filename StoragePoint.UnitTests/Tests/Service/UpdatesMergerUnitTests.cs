@@ -4,6 +4,7 @@
 
     using FakeItEasy;
 
+    using StoragePoint.Contracts.Domain.Changes.Model;
     using StoragePoint.Contracts.Domain.FileStorage.Model;
     using StoragePoint.Domain.Service;
     using StoragePoint.Domain.Service.Helper;
@@ -14,13 +15,13 @@
     {
         private readonly IUpdatedFilesJoiner filesJoiner;
         
-        private readonly UpdatesMerger merger;
+        private readonly MixedChangesMerger merger;
 
         public UpdatesMergerUnitTests()
         {
             this.filesJoiner = A.Fake<IUpdatedFilesJoiner>();
 
-            this.merger = new UpdatesMerger
+            this.merger = new MixedChangesMerger
             {
                 FilesJoiner = this.filesJoiner
             };
@@ -40,7 +41,7 @@
             FileModel movedFile1 = new FileModel();
             FileModel movedFile2 = new FileModel();
 
-            StorageUpdates updatesRepo1 = new StorageUpdates(
+            MixedChanges changesRepo1 = new MixedChanges(
                 0, 
                 new FileModel[] { addedFile1 },
                 new FileModel[] { removedFile1 },
@@ -48,7 +49,7 @@
                 new FileModel[] { renamedFile1 },
                 new FileModel[] { movedFile1 });
 
-            StorageUpdates updatesRepo2 = new StorageUpdates(
+            MixedChanges changesRepo2 = new MixedChanges(
                 0,
                 new FileModel[] { addedFile2 },
                 new FileModel[] { removedFile2 },
@@ -56,7 +57,7 @@
                 new FileModel[] { renamedFile2 },
                 new FileModel[] { movedFile2 });
             
-            var changes = new List<StorageUpdates> { updatesRepo1, updatesRepo2 };
+            var changes = new List<MixedChanges> { changesRepo1, changesRepo2 };
 
             this.merger.Merge(changes);
 

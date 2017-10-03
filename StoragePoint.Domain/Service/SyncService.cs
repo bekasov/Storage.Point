@@ -5,18 +5,18 @@
     using System.Linq;
     using System.Threading.Tasks;
 
+    using StoragePoint.Contracts.Domain.Changes.Model;
+    using StoragePoint.Contracts.Domain.Changes.Service;
     using StoragePoint.Contracts.Domain.Exceptions;
     using StoragePoint.Contracts.Domain.FileStorage;
-    using StoragePoint.Contracts.Domain.FileStorage.Model;
-    using StoragePoint.Contracts.Domain.Service;
 
     public class SyncService
     {
-        private readonly IUpdatesMerger updatesMerger;
+        private readonly IMixedChangesMerger mixedChangesMerger;
 
-        public SyncService(IUpdatesMerger updatesMerger)
+        public SyncService(IMixedChangesMerger mixedChangesMerger)
         {
-            this.updatesMerger = updatesMerger;
+            this.mixedChangesMerger = mixedChangesMerger;
         }
 
         public void InitReference(IFileReferenceRepository syncReference, IFileRepository source)
@@ -61,16 +61,16 @@
                 throw new AllRepositoriesMustBeInitialized();
             }
             
-            IList<(IFileRepository Repo, StorageUpdates Updates)> reposUpdates = sources
+            IList<(IFileRepository Repo, MixedChanges Updates)> reposUpdates = sources
                 .Select(repository => (Repo: repository, Updates: syncReference.DetectUpdates(repository)))
                 .AsParallel()
                 .ToList();
 
-            StorageUpdates mergedUpdates = this.updatesMerger.Merge(reposUpdates.Select(u => u.Updates).ToList());
+            MixedChanges mergedChanges = this.mixedChangesMerger.Merge(reposUpdates.Select(u => u.Updates).ToList());
 
-            Parallel.ForEach(sources, s => s.Update(mergedUpdates));
+            Parallel.ForEach(sources, s => s.Update(mergedChanges));
 
-            syncReference.Update(mergedUpdates);
+            syncReference.Update(mergedChanges);
         }
 
         private void EnsureSourcesAndReferenceIsNotNull(

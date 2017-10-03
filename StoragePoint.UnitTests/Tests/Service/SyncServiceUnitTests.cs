@@ -4,10 +4,10 @@ namespace StoragePoint.UnitTests.Tests.Service
 
     using FakeItEasy;
 
+    using StoragePoint.Contracts.Domain.Changes.Model;
+    using StoragePoint.Contracts.Domain.Changes.Service;
     using StoragePoint.Contracts.Domain.Exceptions;
     using StoragePoint.Contracts.Domain.FileStorage;
-    using StoragePoint.Contracts.Domain.FileStorage.Model;
-    using StoragePoint.Contracts.Domain.Service;
     using StoragePoint.Domain.Service;
 
     using Xunit;
@@ -22,7 +22,7 @@ namespace StoragePoint.UnitTests.Tests.Service
 
         private readonly IFileReferenceRepository referenceRepoFake;
 
-        private readonly IUpdatesMerger mergerFake;
+        private readonly IMixedChangesMerger mergerFake;
 
         private readonly SyncService syncService;
 
@@ -42,7 +42,7 @@ namespace StoragePoint.UnitTests.Tests.Service
             this.referenceRepoFake = A.Fake<IFileReferenceRepository>();
             A.CallTo<bool>(() => this.referenceRepoFake.IsInitialized).Returns(true);
 
-            this.mergerFake = A.Fake<IUpdatesMerger>();
+            this.mergerFake = A.Fake<IMixedChangesMerger>();
 
             this.syncService = new SyncService(this.mergerFake);
         }
@@ -69,13 +69,13 @@ namespace StoragePoint.UnitTests.Tests.Service
         {
             this.syncService.Sync(this.repos, this.referenceRepoFake);
 
-            A.CallTo<StorageUpdates>(() => this.referenceRepoFake.DetectUpdates(this.repo1Fake))
+            A.CallTo<MixedChanges>(() => this.referenceRepoFake.DetectUpdates(this.repo1Fake))
                 .MustHaveHappened(Repeated.Exactly.Once);
-            A.CallTo<StorageUpdates>(() => this.referenceRepoFake.DetectUpdates(this.repo2Fake))
+            A.CallTo<MixedChanges>(() => this.referenceRepoFake.DetectUpdates(this.repo2Fake))
                 .MustHaveHappened(Repeated.Exactly.Once);
-            A.CallTo<StorageUpdates>(() => this.referenceRepoFake.DetectUpdates(this.repo3Fake))
+            A.CallTo<MixedChanges>(() => this.referenceRepoFake.DetectUpdates(this.repo3Fake))
                 .MustHaveHappened(Repeated.Exactly.Once);
-            A.CallTo<StorageUpdates>(() => this.referenceRepoFake.DetectUpdates(this.repo4Fake))
+            A.CallTo<MixedChanges>(() => this.referenceRepoFake.DetectUpdates(this.repo4Fake))
                 .MustHaveHappened(Repeated.Exactly.Once);
             Assert.Equal(4, this.repos.Length);
         }
@@ -83,20 +83,20 @@ namespace StoragePoint.UnitTests.Tests.Service
         [Fact]
         public void SyncServiceDetectUpdates_AllReposAreCorrect_ItMustCallMergeUpdatesForAllUpdates()
         {
-            IReadOnlyList<StorageUpdates> updates = new StorageUpdates[]
+            IReadOnlyList<MixedChanges> updates = new MixedChanges[]
             {
                 this.CreateEmptyUpdates(), this.CreateEmptyUpdates(),
                 this.CreateEmptyUpdates(), this.CreateEmptyUpdates()
             };
-            A.CallTo<StorageUpdates>(() => this.referenceRepoFake.DetectUpdates(this.repo1Fake)).Returns(updates[0]);
-            A.CallTo<StorageUpdates>(() => this.referenceRepoFake.DetectUpdates(this.repo2Fake)).Returns(updates[1]);
-            A.CallTo<StorageUpdates>(() => this.referenceRepoFake.DetectUpdates(this.repo3Fake)).Returns(updates[2]);
-            A.CallTo<StorageUpdates>(() => this.referenceRepoFake.DetectUpdates(this.repo4Fake)).Returns(updates[3]);
+            A.CallTo<MixedChanges>(() => this.referenceRepoFake.DetectUpdates(this.repo1Fake)).Returns(updates[0]);
+            A.CallTo<MixedChanges>(() => this.referenceRepoFake.DetectUpdates(this.repo2Fake)).Returns(updates[1]);
+            A.CallTo<MixedChanges>(() => this.referenceRepoFake.DetectUpdates(this.repo3Fake)).Returns(updates[2]);
+            A.CallTo<MixedChanges>(() => this.referenceRepoFake.DetectUpdates(this.repo4Fake)).Returns(updates[3]);
 
 
             this.syncService.Sync(this.repos, this.referenceRepoFake);
 
-            A.CallTo<StorageUpdates>(() => this.mergerFake.Merge(A<IReadOnlyList<StorageUpdates>>.That.IsSameSequenceAs(updates)))
+            A.CallTo<MixedChanges>(() => this.mergerFake.Merge(A<IReadOnlyList<MixedChanges>>.That.IsSameSequenceAs(updates)))
                 .MustHaveHappened(Repeated.Exactly.Once);
             Assert.Equal(4, this.repos.Length);
         }
@@ -104,27 +104,27 @@ namespace StoragePoint.UnitTests.Tests.Service
         [Fact]
         public void SyncServiceSynchronization_AllReposAreCorrect_ItMustCallUpdateWithMergedUpdatesForAllRepos()
         {
-            StorageUpdates mergedUpdates = this.CreateEmptyUpdates();
-            A.CallTo<StorageUpdates>(() => this.mergerFake.Merge(A<IReadOnlyList<StorageUpdates>>.Ignored)).Returns(mergedUpdates);
+            MixedChanges mergedChanges = this.CreateEmptyUpdates();
+            A.CallTo<MixedChanges>(() => this.mergerFake.Merge(A<IReadOnlyList<MixedChanges>>.Ignored)).Returns(mergedChanges);
 
             this.syncService.Sync(this.repos, this.referenceRepoFake);
 
-            A.CallTo(() => this.repo1Fake.Update(mergedUpdates)).MustHaveHappened(Repeated.Exactly.Once);
-            A.CallTo(() => this.repo2Fake.Update(mergedUpdates)).MustHaveHappened(Repeated.Exactly.Once);
-            A.CallTo(() => this.repo3Fake.Update(mergedUpdates)).MustHaveHappened(Repeated.Exactly.Once);
-            A.CallTo(() => this.repo4Fake.Update(mergedUpdates)).MustHaveHappened(Repeated.Exactly.Once);
+            A.CallTo(() => this.repo1Fake.Update(mergedChanges)).MustHaveHappened(Repeated.Exactly.Once);
+            A.CallTo(() => this.repo2Fake.Update(mergedChanges)).MustHaveHappened(Repeated.Exactly.Once);
+            A.CallTo(() => this.repo3Fake.Update(mergedChanges)).MustHaveHappened(Repeated.Exactly.Once);
+            A.CallTo(() => this.repo4Fake.Update(mergedChanges)).MustHaveHappened(Repeated.Exactly.Once);
             Assert.Equal(4, this.repos.Length);
         }
 
         [Fact]
         public void SyncServiceSynchronization_AllReposAreCorrect_ItMustCallUpdateWithMergedUpdatesForReferenceRepos()
         {
-            StorageUpdates mergedUpdates = this.CreateEmptyUpdates();
-            A.CallTo<StorageUpdates>(() => this.mergerFake.Merge(A<IReadOnlyList<StorageUpdates>>.Ignored)).Returns(mergedUpdates);
+            MixedChanges mergedChanges = this.CreateEmptyUpdates();
+            A.CallTo<MixedChanges>(() => this.mergerFake.Merge(A<IReadOnlyList<MixedChanges>>.Ignored)).Returns(mergedChanges);
 
             this.syncService.Sync(this.repos, this.referenceRepoFake);
 
-            A.CallTo(() => this.referenceRepoFake.Update(mergedUpdates)).MustHaveHappened(Repeated.Exactly.Once);
+            A.CallTo(() => this.referenceRepoFake.Update(mergedChanges)).MustHaveHappened(Repeated.Exactly.Once);
         }
 
         [Fact]
@@ -174,9 +174,9 @@ namespace StoragePoint.UnitTests.Tests.Service
                 .MustHaveHappened(repeatedOnce ? Repeated.Exactly.Once : Repeated.Never);
         }
 
-        private StorageUpdates CreateEmptyUpdates()
+        private MixedChanges CreateEmptyUpdates()
         {
-            return new StorageUpdates(0, null, null, null, null, null);
+            return new MixedChanges(0, null, null, null, null, null);
         }
     }
 }

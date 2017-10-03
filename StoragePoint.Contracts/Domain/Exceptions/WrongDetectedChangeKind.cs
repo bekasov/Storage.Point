@@ -1,6 +1,6 @@
 ﻿namespace StoragePoint.Contracts.Domain.Exceptions
 {
-    public class WrongTypeOfUpdates : BaseException
+    public class WrongDetectedChangeKind : BaseException
     {
         
     }

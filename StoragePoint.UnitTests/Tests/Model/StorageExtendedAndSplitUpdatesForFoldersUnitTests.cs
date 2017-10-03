@@ -1,21 +1,28 @@
 ﻿namespace StoragePoint.UnitTests.Tests.Model
 {
     using System.Collections.Generic;
+    using System.Linq;
 
+    using StoragePoint.Contracts.Domain.Changes.Model;
     using StoragePoint.Contracts.Domain.Exceptions;
     using StoragePoint.Contracts.Domain.FileStorage.Model;
-    using StoragePoint.Domain.Model;
+    using StoragePoint.Domain.Changes;
 
     using Xunit;
 
     public class StorageExtendedAndSplitUpdatesForFoldersUnitTests
     {
-        private ExtendedUpdates model;
+        private readonly MixedChangesProcessor changesProcessor;
+
+        public StorageExtendedAndSplitUpdatesForFoldersUnitTests()
+        {
+            this.changesProcessor = new MixedChangesProcessor();
+        }
 
         [Fact]
         public void ExtendedUpdates_UpdatedFolderInUpdates_ItMustThrowWrongTypeOfUpdatesException()
         {
-            StorageUpdates updatesWithChangedFolder = new StorageUpdates(
+            MixedChanges changesWithChangedFolder = new MixedChanges(
                 0,
                 new FileModel[0],
                 new FileModel[0],
@@ -23,85 +30,48 @@
                 new FileModel[0],
                 new FileModel[0]);
 
-            Assert.Throws<WrongTypeOfUpdates>(() => this.model = new ExtendedUpdates(updatesWithChangedFolder));
+            Assert.Throws<WrongDetectedChangeKind>(() => this.changesProcessor.SplitChanges(changesWithChangedFolder));
         }
 
         [Fact]
         public void ExtendedUpdatesForFilesWithoutMix_CorrectParams_ItMustCreateCorrectExtendedUpdatesModel()
         {
-            this.model = new ExtendedUpdates(this.CreateUpdates());
+            IList<ChangedFile> actualResult = this.changesProcessor.SplitChanges(this.CreateUpdates());
 
-            Assert.True(this.model.Added.Count == 2);
-            Assert.Contains(this.model.Added, af => af.FileOsId == 1);
-            Assert.Contains(this.model.Added, af => af.FileOsId == 2);
-
-            Assert.True(this.model.Removed.Count == 2);
-            Assert.Contains(this.model.Removed, af => af.FileOsId == 3);
-            Assert.Contains(this.model.Removed, af => af.FileOsId == 4);
-
-            Assert.True(this.model.Updated.Count == 2);
-            Assert.Contains(this.model.Updated, af => af.FileOsId == 5);
-            Assert.Contains(this.model.Updated, af => af.FileOsId == 6);
-
-            Assert.True(this.model.Renamed.Count == 2);
-            Assert.Contains(this.model.Renamed, af => af.FileOsId == 7);
-            Assert.Contains(this.model.Renamed, af => af.FileOsId == 8);
-
-            Assert.True(this.model.Moved.Count == 2);
-            Assert.Contains(this.model.Moved, af => af.FileOsId == 9);
-            Assert.Contains(this.model.Moved, af => af.FileOsId == 10);
-
-            Assert.True(this.model.RenamedAndUpdated.Count == 0);
-            Assert.True(this.model.MovedAndUpdated.Count == 0);
-            Assert.True(this.model.RenamedAndMoved.Count == 0);
-            Assert.True(this.model.RenamedAndMovedAndUpdated.Count == 0);
+            this.AssetSeparatedResult(actualResult);
+            Assert.False(actualResult.Any(f => f.ChangeKind == FileChange.RENAMED_UPDATED));
+            Assert.False(actualResult.Any(f => f.ChangeKind == FileChange.MOVED_UPDATED));
+            Assert.False(actualResult.Any(f => f.ChangeKind == FileChange.RENAMED_MOVED));
+            Assert.False(actualResult.Any(f => f.ChangeKind == FileChange.RENAMED_MOVED_UPDATED));
         }
 
         [Fact]
         public void ExtendedUpdatesForFilesWithMix_CorrectParams_ItMustCreateCorrectExtendedUpdatesModel()
         {
-            this.model = new ExtendedUpdates(this.CreateUpdates(true));
+            IList<ChangedFile> actualResult = this.changesProcessor.SplitChanges(this.CreateUpdates(true));
 
-            Assert.True(this.model.Added.Count == 2);
-            Assert.Contains(this.model.Added, af => af.FileOsId == 1);
-            Assert.Contains(this.model.Added, af => af.FileOsId == 2);
+            this.AssetSeparatedResult(actualResult);
 
-            Assert.True(this.model.Removed.Count == 2);
-            Assert.Contains(this.model.Removed, af => af.FileOsId == 3);
-            Assert.Contains(this.model.Removed, af => af.FileOsId == 4);
+            Assert.True(actualResult.Count(f => f.ChangeKind == FileChange.RENAMED_UPDATED) == 2);
+            Assert.Contains(actualResult, f => f.File.FileOsId == 11 && f.ChangeKind == FileChange.RENAMED_UPDATED);
+            Assert.Contains(actualResult, f => f.File.FileOsId == 12 && f.ChangeKind == FileChange.RENAMED_UPDATED);
 
-            Assert.True(this.model.Updated.Count == 2);
-            Assert.Contains(this.model.Updated, af => af.FileOsId == 5);
-            Assert.Contains(this.model.Updated, af => af.FileOsId == 6);
+            Assert.True(actualResult.Count(f => f.ChangeKind == FileChange.MOVED_UPDATED) == 2);
+            Assert.Contains(actualResult, f => f.File.FileOsId == 13 && f.ChangeKind == FileChange.MOVED_UPDATED);
+            Assert.Contains(actualResult, f => f.File.FileOsId == 14 && f.ChangeKind == FileChange.MOVED_UPDATED);
 
-            Assert.True(this.model.Renamed.Count == 2);
-            Assert.Contains(this.model.Renamed, af => af.FileOsId == 7);
-            Assert.Contains(this.model.Renamed, af => af.FileOsId == 8);
+            Assert.True(actualResult.Count(f => f.ChangeKind == FileChange.RENAMED_MOVED) == 4);
+            Assert.Contains(actualResult, f => f.File.FileOsId == 15 && f.ChangeKind == FileChange.RENAMED_MOVED);
+            Assert.Contains(actualResult, f => f.File.FileOsId == 16 && f.ChangeKind == FileChange.RENAMED_MOVED);
+            Assert.Contains(actualResult, f => f.File.FileOsId == 17 && f.ChangeKind == FileChange.RENAMED_MOVED);
+            Assert.Contains(actualResult, f => f.File.FileOsId == 18 && f.ChangeKind == FileChange.RENAMED_MOVED);
 
-            Assert.True(this.model.Moved.Count == 2);
-            Assert.Contains(this.model.Moved, af => af.FileOsId == 9);
-            Assert.Contains(this.model.Moved, af => af.FileOsId == 10);
-
-            Assert.True(this.model.RenamedAndUpdated.Count == 2);
-            Assert.Contains(this.model.RenamedAndUpdated, af => af.FileOsId == 11);
-            Assert.Contains(this.model.RenamedAndUpdated, af => af.FileOsId == 12);
-
-            Assert.True(this.model.MovedAndUpdated.Count == 2);
-            Assert.Contains(this.model.MovedAndUpdated, af => af.FileOsId == 13);
-            Assert.Contains(this.model.MovedAndUpdated, af => af.FileOsId == 14);
-
-            Assert.True(this.model.RenamedAndMoved.Count == 4);
-            Assert.Contains(this.model.RenamedAndMoved, af => af.FileOsId == 15);
-            Assert.Contains(this.model.RenamedAndMoved, af => af.FileOsId == 16);
-            Assert.Contains(this.model.RenamedAndMoved, af => af.FileOsId == 17);
-            Assert.Contains(this.model.RenamedAndMoved, af => af.FileOsId == 18);
-
-            Assert.True(this.model.RenamedAndMovedAndUpdated.Count == 2);
-            Assert.Contains(this.model.RenamedAndMovedAndUpdated, af => af.FileOsId == 19);
-            Assert.Contains(this.model.RenamedAndMovedAndUpdated, af => af.FileOsId == 20);
+            Assert.True(actualResult.Count(f => f.ChangeKind == FileChange.RENAMED_MOVED_UPDATED) == 2);
+            Assert.Contains(actualResult, f => f.File.FileOsId == 19 && f.ChangeKind == FileChange.RENAMED_MOVED_UPDATED);
+            Assert.Contains(actualResult, f => f.File.FileOsId == 20 && f.ChangeKind == FileChange.RENAMED_MOVED_UPDATED);
         }
 
-        private StorageUpdates CreateUpdates(bool addMixedChanges = false)
+        private MixedChanges CreateUpdates(bool addMixedChanges = false)
         {
             FileModel addedFolder1 = new FileModel { FileOsId = 1, FileType = FileType.FOLDER };
             FileModel addedFile2 = new FileModel { FileOsId = 2, FileType = FileType.FILE };
@@ -150,9 +120,32 @@
                 renamed.AddRange(new[] { renamedMovedAndUpdatedFile1, renamedMovedAndUpdatedFile2 });
             }
 
-            StorageUpdates result = new StorageUpdates(0, added, removed, updated, renamed, moved);
+            MixedChanges result = new MixedChanges(0, added, removed, updated, renamed, moved);
 
             return result;
+        }
+
+        private void AssetSeparatedResult(IList<ChangedFile> actualResult)
+        {
+            Assert.True(actualResult.Count(f => f.ChangeKind == FileChange.ADDED) == 2);
+            Assert.Contains(actualResult, f => f.File.FileOsId == 1 && f.ChangeKind == FileChange.ADDED);
+            Assert.Contains(actualResult, f => f.File.FileOsId == 2 && f.ChangeKind == FileChange.ADDED);
+
+            Assert.True(actualResult.Count(f => f.ChangeKind == FileChange.REMOVED) == 2);
+            Assert.Contains(actualResult, f => f.File.FileOsId == 3 && f.ChangeKind == FileChange.REMOVED);
+            Assert.Contains(actualResult, f => f.File.FileOsId == 4 && f.ChangeKind == FileChange.REMOVED);
+
+            Assert.True(actualResult.Count(f => f.ChangeKind == FileChange.UPDATED) == 2);
+            Assert.Contains(actualResult, f => f.File.FileOsId == 5 && f.ChangeKind == FileChange.UPDATED);
+            Assert.Contains(actualResult, f => f.File.FileOsId == 6 && f.ChangeKind == FileChange.UPDATED);
+
+            Assert.True(actualResult.Count(f => f.ChangeKind == FileChange.RENAMED) == 2);
+            Assert.Contains(actualResult, f => f.File.FileOsId == 7 && f.ChangeKind == FileChange.RENAMED);
+            Assert.Contains(actualResult, f => f.File.FileOsId == 8 && f.ChangeKind == FileChange.RENAMED);
+
+            Assert.True(actualResult.Count(f => f.ChangeKind == FileChange.MOVED) == 2);
+            Assert.Contains(actualResult, f => f.File.FileOsId == 9 && f.ChangeKind == FileChange.MOVED);
+            Assert.Contains(actualResult, f => f.File.FileOsId == 10 && f.ChangeKind == FileChange.MOVED);
         }
     }
 }

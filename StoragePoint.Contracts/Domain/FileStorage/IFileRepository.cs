@@ -1,5 +1,6 @@
 ﻿namespace StoragePoint.Contracts.Domain.FileStorage
 {
+    using StoragePoint.Contracts.Domain.Changes.Model;
     using StoragePoint.Contracts.Domain.FileStorage.Model;
 
     public interface IFileRepository
@@ -10,8 +11,8 @@
 
         StorageContent GetAll();
 
-        StorageUpdates DetectUpdates(IFileRepository source);
+        MixedChanges DetectUpdates(IFileRepository source);
 
-        void Update(StorageUpdates updates);
+        void Update(MixedChanges changes);
     }
 }

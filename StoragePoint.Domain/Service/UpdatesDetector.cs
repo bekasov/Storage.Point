@@ -4,12 +4,13 @@
     using System.Collections.Generic;
     using System.Linq;
 
+    using StoragePoint.Contracts.Domain.Changes.Model;
     using StoragePoint.Contracts.Domain.FileStorage.Model;
     using StoragePoint.Domain.Service.Comparator;
 
     public class UpdatesDetector
     {
-        public StorageUpdates Detect(StorageContent referenceContent, StorageContent source)
+        public MixedChanges Detect(StorageContent referenceContent, StorageContent source)
         {
             if (referenceContent == null)
             {
@@ -44,7 +45,7 @@
 
             List<FileModel> movedFiles = this.DetectMovedFiles(referenceContent, source, removedFilesIds, addedFilesIds);
 
-            return new StorageUpdates(
+            return new MixedChanges(
                 source.StorageId, 
                 addedFiles, 
                 removedFiles, 

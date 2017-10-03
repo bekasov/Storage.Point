@@ -8,4 +8,8 @@
     <ProjectReference Include="..\StoragePoint.Contracts\StoragePoint.Contracts.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Model\" />
+  </ItemGroup>
+
 </Project>
