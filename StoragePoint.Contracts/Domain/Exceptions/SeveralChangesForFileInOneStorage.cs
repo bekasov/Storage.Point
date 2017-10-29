@@ -6,14 +6,14 @@
 
     public class SeveralChangesForFileInOneStorage : BaseException
     {
-        public SeveralChangesForFileInOneStorage(int storageId, FileModel file)
-        {
-            this.StorageId = storageId;
-            this.File = file;
-        }
+        //public SeveralChangesForFileInOneStorage(int storageId, FileModel file)
+        //{
+        //    this.StorageId = storageId;
+        //    this.File = file;
+        //}
 
-        public int StorageId { get; }
+        //public int StorageId { get; }
 
-        public FileModel File { get; }
+        //public FileModel File { get; }
     }
 }

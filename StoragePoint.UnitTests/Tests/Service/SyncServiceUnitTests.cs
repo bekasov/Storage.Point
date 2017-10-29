@@ -14,37 +14,37 @@ namespace StoragePoint.UnitTests.Tests.Service
 
     public class SyncServiceUnitTests
     {
-        private readonly IFileRepository repo1Fake;
-        private readonly IFileRepository repo2Fake;
-        private readonly IFileRepository repo3Fake;
-        private readonly IFileRepository repo4Fake;
-        private readonly IFileRepository[] repos;
+        private readonly IFileStorage repo1Fake;
+        private readonly IFileStorage repo2Fake;
+        private readonly IFileStorage repo3Fake;
+        private readonly IFileStorage repo4Fake;
+        private readonly IFileStorage[] repos;
 
-        private readonly IFileReferenceRepository referenceRepoFake;
+        private readonly IFileReferenceStorage referenceRepoFake;
 
-        private readonly IMixedChangesMerger mergerFake;
+        private readonly IMixedChangesSplitter splitterFake;
 
         private readonly SyncService syncService;
 
         public SyncServiceUnitTests()
         {
-            this.repo1Fake = A.Fake<IFileRepository>();
+            this.repo1Fake = A.Fake<IFileStorage>();
             A.CallTo<bool>(() => this.repo1Fake.IsInitialized).Returns(false);
-            this.repo2Fake = A.Fake<IFileRepository>();
+            this.repo2Fake = A.Fake<IFileStorage>();
             A.CallTo<bool>(() => this.repo2Fake.IsInitialized).Returns(false);
-            this.repo3Fake = A.Fake<IFileRepository>();
+            this.repo3Fake = A.Fake<IFileStorage>();
             A.CallTo<bool>(() => this.repo3Fake.IsInitialized).Returns(false);
-            this.repo4Fake = A.Fake<IFileRepository>();
+            this.repo4Fake = A.Fake<IFileStorage>();
             A.CallTo<bool>(() => this.repo4Fake.IsInitialized).Returns(false);
 
-            this.repos = new IFileRepository[] { this.repo1Fake, this.repo2Fake, this.repo3Fake, this.repo4Fake };
+            this.repos = new IFileStorage[] { this.repo1Fake, this.repo2Fake, this.repo3Fake, this.repo4Fake };
 
-            this.referenceRepoFake = A.Fake<IFileReferenceRepository>();
+            this.referenceRepoFake = A.Fake<IFileReferenceStorage>();
             A.CallTo<bool>(() => this.referenceRepoFake.IsInitialized).Returns(true);
 
-            this.mergerFake = A.Fake<IMixedChangesMerger>();
+            this.splitterFake = A.Fake<IMixedChangesSplitter>();
 
-            this.syncService = new SyncService(this.mergerFake);
+            this.syncService = new SyncService(this.splitterFake);
         }
 
         [Fact]
@@ -96,7 +96,7 @@ namespace StoragePoint.UnitTests.Tests.Service
 
             this.syncService.Sync(this.repos, this.referenceRepoFake);
 
-            A.CallTo<MixedChanges>(() => this.mergerFake.Merge(A<IReadOnlyList<MixedChanges>>.That.IsSameSequenceAs(updates)))
+            A.CallTo<IReadOnlyList<ChangedFile>>(() => this.splitterFake.Split(A<MixedChanges>.That.IsSameAs(updates[0])))
                 .MustHaveHappened(Repeated.Exactly.Once);
             Assert.Equal(4, this.repos.Length);
         }
@@ -104,8 +104,8 @@ namespace StoragePoint.UnitTests.Tests.Service
         [Fact]
         public void SyncServiceSynchronization_AllReposAreCorrect_ItMustCallUpdateWithMergedUpdatesForAllRepos()
         {
-            MixedChanges mergedChanges = this.CreateEmptyUpdates();
-            A.CallTo<MixedChanges>(() => this.mergerFake.Merge(A<IReadOnlyList<MixedChanges>>.Ignored)).Returns(mergedChanges);
+            IReadOnlyList<ChangedFile> mergedChanges = new List<ChangedFile>();
+            A.CallTo<IReadOnlyList<ChangedFile>>(() => this.splitterFake.Split(A<MixedChanges>.Ignored)).Returns(mergedChanges);
 
             this.syncService.Sync(this.repos, this.referenceRepoFake);
 
@@ -119,8 +119,8 @@ namespace StoragePoint.UnitTests.Tests.Service
         [Fact]
         public void SyncServiceSynchronization_AllReposAreCorrect_ItMustCallUpdateWithMergedUpdatesForReferenceRepos()
         {
-            MixedChanges mergedChanges = this.CreateEmptyUpdates();
-            A.CallTo<MixedChanges>(() => this.mergerFake.Merge(A<IReadOnlyList<MixedChanges>>.Ignored)).Returns(mergedChanges);
+            IReadOnlyList<ChangedFile> mergedChanges = new List<ChangedFile>();
+            A.CallTo<IReadOnlyList<ChangedFile>>(() => this.splitterFake.Split(A<MixedChanges>.Ignored)).Returns(mergedChanges);
 
             this.syncService.Sync(this.repos, this.referenceRepoFake);
 
@@ -176,7 +176,7 @@ namespace StoragePoint.UnitTests.Tests.Service
 
         private MixedChanges CreateEmptyUpdates()
         {
-            return new MixedChanges(0, null, null, null, null, null);
+            return new MixedChanges(null, null, null, null, null);
         }
     }
 }

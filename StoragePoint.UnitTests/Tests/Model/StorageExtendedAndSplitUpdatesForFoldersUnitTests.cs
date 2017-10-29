@@ -6,37 +6,36 @@
     using StoragePoint.Contracts.Domain.Changes.Model;
     using StoragePoint.Contracts.Domain.Exceptions;
     using StoragePoint.Contracts.Domain.FileStorage.Model;
-    using StoragePoint.Domain.Changes;
+    using StoragePoint.Domain.Service;
 
     using Xunit;
 
     public class StorageExtendedAndSplitUpdatesForFoldersUnitTests
     {
-        private readonly MixedChangesProcessor changesProcessor;
+        private readonly MixedChangesSplitter changesProcessor;
 
         public StorageExtendedAndSplitUpdatesForFoldersUnitTests()
         {
-            this.changesProcessor = new MixedChangesProcessor();
+            this.changesProcessor = new MixedChangesSplitter();
         }
 
         [Fact]
         public void ExtendedUpdates_UpdatedFolderInUpdates_ItMustThrowWrongTypeOfUpdatesException()
         {
             MixedChanges changesWithChangedFolder = new MixedChanges(
-                0,
                 new FileModel[0],
                 new FileModel[0],
                 new FileModel[] { new FileModel { FileType = FileType.FILE }, new FileModel { FileType = FileType.FOLDER } },
                 new FileModel[0],
                 new FileModel[0]);
 
-            Assert.Throws<WrongDetectedChangeKind>(() => this.changesProcessor.SplitChanges(changesWithChangedFolder));
+            Assert.Throws<WrongDetectedChangeKind>(() => this.changesProcessor.Split(changesWithChangedFolder));
         }
 
         [Fact]
         public void ExtendedUpdatesForFilesWithoutMix_CorrectParams_ItMustCreateCorrectExtendedUpdatesModel()
         {
-            IList<ChangedFile> actualResult = this.changesProcessor.SplitChanges(this.CreateUpdates());
+            IReadOnlyList<ChangedFile> actualResult = this.changesProcessor.Split(this.CreateUpdates());
 
             this.AssetSeparatedResult(actualResult);
             Assert.False(actualResult.Any(f => f.ChangeKind == FileChange.RENAMED_UPDATED));
@@ -48,7 +47,7 @@
         [Fact]
         public void ExtendedUpdatesForFilesWithMix_CorrectParams_ItMustCreateCorrectExtendedUpdatesModel()
         {
-            IList<ChangedFile> actualResult = this.changesProcessor.SplitChanges(this.CreateUpdates(true));
+            IReadOnlyList<ChangedFile> actualResult = this.changesProcessor.Split(this.CreateUpdates(true));
 
             this.AssetSeparatedResult(actualResult);
 
@@ -120,12 +119,12 @@
                 renamed.AddRange(new[] { renamedMovedAndUpdatedFile1, renamedMovedAndUpdatedFile2 });
             }
 
-            MixedChanges result = new MixedChanges(0, added, removed, updated, renamed, moved);
+            MixedChanges result = new MixedChanges(added, removed, updated, renamed, moved);
 
             return result;
         }
 
-        private void AssetSeparatedResult(IList<ChangedFile> actualResult)
+        private void AssetSeparatedResult(IReadOnlyList<ChangedFile> actualResult)
         {
             Assert.True(actualResult.Count(f => f.ChangeKind == FileChange.ADDED) == 2);
             Assert.Contains(actualResult, f => f.File.FileOsId == 1 && f.ChangeKind == FileChange.ADDED);

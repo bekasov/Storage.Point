@@ -4,8 +4,8 @@
 
     using StoragePoint.Contracts.Domain.Changes.Model;
 
-    public interface IMixedChangesProcessor
+    public interface IMixedChangesSplitter
     {
-        IList<ChangedFile> SplitChanges(MixedChanges mixedChanges);
+        IReadOnlyList<ChangedFile> Split(MixedChanges changes);
     }
 }

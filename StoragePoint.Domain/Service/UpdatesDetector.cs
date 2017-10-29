@@ -46,7 +46,7 @@
             List<FileModel> movedFiles = this.DetectMovedFiles(referenceContent, source, removedFilesIds, addedFilesIds);
 
             return new MixedChanges(
-                source.StorageId, 
+                //source.StorageId, 
                 addedFiles, 
                 removedFiles, 
                 changedFiles, 

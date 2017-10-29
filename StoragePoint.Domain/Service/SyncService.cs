@@ -12,14 +12,14 @@
 
     public class SyncService
     {
-        private readonly IMixedChangesMerger mixedChangesMerger;
+        private readonly IMixedChangesSplitter mixedChangesSplitter;
 
-        public SyncService(IMixedChangesMerger mixedChangesMerger)
+        public SyncService(IMixedChangesSplitter mixedChangesSplitter)
         {
-            this.mixedChangesMerger = mixedChangesMerger;
+            this.mixedChangesSplitter = mixedChangesSplitter;
         }
 
-        public void InitReference(IFileReferenceRepository syncReference, IFileRepository source)
+        public void InitReference(IFileReferenceStorage syncReference, IFileStorage source)
         {
             if (syncReference == null)
             {
@@ -39,19 +39,19 @@
             syncReference.CopyAll(source);
         }
 
-        public void InitRepositories(IReadOnlyList<IFileRepository> sources, IFileReferenceRepository syncReference)
+        public void InitRepositories(IReadOnlyList<IFileStorage> sources, IFileReferenceStorage syncReference)
         {
             this.EnsureSourcesAndReferenceIsNotNull(sources, syncReference);
             this.EnsureRepositoryIsInitialized(syncReference);
 
-            IList<IFileRepository> uninitRepos = sources
+            IList<IFileStorage> noInitRepositories = sources
                 .Where(s => s.IsInitialized == false)
                 .ToList();
 
-            Parallel.ForEach(uninitRepos, r => r.CopyAll(syncReference));
+            Parallel.ForEach(noInitRepositories, r => r.CopyAll(syncReference));
         }
 
-        public void Sync(IReadOnlyList<IFileRepository> sources, IFileReferenceRepository syncReference)
+        public void Sync(IReadOnlyList<IFileStorage> sources, IFileReferenceStorage syncReference)
         {
             this.EnsureSourcesAndReferenceIsNotNull(sources, syncReference);
             this.EnsureRepositoryIsInitialized(syncReference);
@@ -61,21 +61,50 @@
                 throw new AllRepositoriesMustBeInitialized();
             }
             
-            IList<(IFileRepository Repo, MixedChanges Updates)> reposUpdates = sources
-                .Select(repository => (Repo: repository, Updates: syncReference.DetectUpdates(repository)))
+            IList<(IFileStorage Storage, MixedChanges MixedChanges)> mixedChanges = sources
+                .Select(repository => (Storage: repository, MixedChanges: syncReference.DetectUpdates(repository)))
                 .AsParallel()
                 .ToList();
 
-            MixedChanges mergedChanges = this.mixedChangesMerger.Merge(reposUpdates.Select(u => u.Updates).ToList());
+            // (Storage: c.Storage, SplitChanges: this.mixedChangesSplitter.Split(c.MixedChanges))
+            IList<StorageChanges> splitChanges = mixedChanges
+                .Select(c => new StorageChanges(c.Storage, this.mixedChangesSplitter.Split(c.MixedChanges)))
+                .AsParallel()
+                .ToList();
 
-            Parallel.ForEach(sources, s => s.Update(mergedChanges));
+            foreach (StorageChanges splitChange in splitChanges)
+            {
+                foreach (StorageChanges otherSplitChange in splitChanges)
+                {
+                    if (ReferenceEquals(splitChange, otherSplitChange))
+                    {
+                        continue;
+                    }
 
-            syncReference.Update(mergedChanges);
+
+                }
+            }
+
+
+            // Parallel.ForEach(sources, s => s.Update(mergedChanges));
+
+            // syncReference.Update(mergedChanges);
         }
 
-        private void EnsureSourcesAndReferenceIsNotNull(
-                IReadOnlyList<IFileRepository> sources, 
-                IFileReferenceRepository syncReference)
+        class StorageChanges
+        {
+            public StorageChanges(IFileStorage storage, IReadOnlyList<ChangedFile> splitChanges)
+            {
+                this.Storage = storage;
+                this.SplitChanges = splitChanges;
+            }
+
+            public IFileStorage Storage { get; }
+
+            public IReadOnlyList<ChangedFile> SplitChanges { get; }
+        }
+
+        private void EnsureSourcesAndReferenceIsNotNull(IReadOnlyList<IFileStorage> sources, IFileReferenceStorage syncReference)
         {
             if (sources == null)
             {
@@ -88,7 +117,7 @@
             }
         }
 
-        private void EnsureRepositoryIsInitialized(IFileRepository source)
+        private void EnsureRepositoryIsInitialized(IFileStorage source)
         {
             if (!source.IsInitialized)
             {

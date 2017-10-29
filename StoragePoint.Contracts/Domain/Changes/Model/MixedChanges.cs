@@ -7,14 +7,14 @@
     public class MixedChanges
     {
         public MixedChanges(
-            int storageId, 
+            // int storageId, 
             IReadOnlyList<FileModel> added, 
             IReadOnlyList<FileModel> removed, 
             IReadOnlyList<FileModel> updated, 
             IReadOnlyList<FileModel> renamed, 
             IReadOnlyList<FileModel> moved)
         {
-            this.StorageId = storageId;
+            // this.StorageId = storageId;
             this.Added = added;
             this.Removed = removed;
             this.Updated = updated;
@@ -22,7 +22,7 @@
             this.Moved = moved;
         }
 
-        public int StorageId { get; }
+        // public int StorageId { get; }
 
         public IReadOnlyList<FileModel> Added { get; }
 

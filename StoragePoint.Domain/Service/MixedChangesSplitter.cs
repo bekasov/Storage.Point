@@ -1,4 +1,4 @@
-﻿namespace StoragePoint.Domain.Changes
+﻿namespace StoragePoint.Domain.Service
 {
     using System;
     using System.Collections.Generic;
@@ -8,27 +8,47 @@
     using StoragePoint.Contracts.Domain.Changes.Service;
     using StoragePoint.Contracts.Domain.Exceptions;
     using StoragePoint.Contracts.Domain.FileStorage.Model;
+    using StoragePoint.Domain.Changes;
+    using StoragePoint.Domain.Service.Helper;
 
-    public class MixedChangesProcessor : IMixedChangesProcessor
+    public class MixedChangesSplitter : IMixedChangesSplitter
     {
-        private int storageId;
+        // public IUpdatedFilesJoiner FilesJoiner { private get; set; } = new UpdatedFilesJoiner();
 
-        public IList<ChangedFile> SplitChanges(MixedChanges changes)
+        public IReadOnlyList<ChangedFile> Split(MixedChanges mixedChanges)
         {
-            if (changes.Updated.Any(f => f.FileType == FileType.FOLDER))
-            {
-                throw new WrongDetectedChangeKind();
-            }
+            //List<FileModel> allAdded = new List<FileModel>();
+            //List<FileModel> allRemoved = new List<FileModel>();
+            //List<FileModel> allChanged = new List<FileModel>();
+            //List<FileModel> allRenamed = new List<FileModel>();
+            //List<FileModel> allMoved = new List<FileModel>();
 
-            this.storageId = changes.StorageId;
+            //Array.ForEach( // Parallel.ForEach failed for allAdded.AddRange: 1 item in result instead of 2 for UpdatesMerger_CorrectArgs_ItMustCallUpdatedFilesJoiner
+            //    mixedChanges.ToArray(),
+            //    u =>
+            //    {
+            //        allAdded.AddRange(u.Added);
+            //        allRemoved.AddRange(u.Removed);
+            //        allChanged.AddRange(u.Updated);
+            //        allRenamed.AddRange(u.Renamed);
+            //        allMoved.AddRange(u.Moved);
+            //    });
+
+            // Parallel.Invoke
+            //MixedChanges joinedChanges = new MixedChanges(
+            //    this.FilesJoiner.JoinTheSame(allAdded),
+            //    this.FilesJoiner.JoinTheSame(allRemoved),
+            //    this.FilesJoiner.JoinTheSame(allChanged),
+            //    this.FilesJoiner.JoinTheSame(allRenamed),
+            //    this.FilesJoiner.JoinTheSame(allMoved));
 
             List<ChangedFile> result = new List<ChangedFile>();
 
-            result.AddRange(this.SplitMixedAddedAndRemoved(changes, FileType.FOLDER));
-            result.AddRange(this.SplitMixedChanges(changes, FileType.FOLDER));
-            result.AddRange(this.SplitMixedChanges(changes, FileType.FILE));
-            result.AddRange(this.SplitMixedAddedAndRemoved(changes, FileType.FILE));
-            
+            result.AddRange(this.SplitMixedAddedAndRemoved(mixedChanges, FileType.FOLDER));
+            result.AddRange(this.SplitMixedChanges(mixedChanges, FileType.FOLDER));
+            result.AddRange(this.SplitMixedChanges(mixedChanges, FileType.FILE));
+            result.AddRange(this.SplitMixedAddedAndRemoved(mixedChanges, FileType.FILE));
+
             return result;
         }
 
@@ -66,7 +86,7 @@
                 {
                     if (foundFiles.Count > 1)
                     {
-                        throw new SeveralChangesForFileInOneStorage(this.storageId, foundFiles.First());
+                        throw new SeveralChangesForFileInOneStorage();
                     }
 
                     result.Add(updateKind);
@@ -94,7 +114,7 @@
             {
                 if (changes.Contains(changeKey))
                 {
-                    throw new SeveralChangesForFileInOneStorage(this.storageId, currentFile);
+                    throw new SeveralChangesForFileInOneStorage();
                 }
             }
         }
@@ -109,7 +129,7 @@
             };
 
             IList<ChangedFile> result = new List<ChangedFile>();
-            
+
             foreach (IReadOnlyList<FileModel> currentChangeSet in mixedChanges.Values)
             {
                 foreach (FileModel currentFile in currentChangeSet.Where(f => f.FileType == fileType))

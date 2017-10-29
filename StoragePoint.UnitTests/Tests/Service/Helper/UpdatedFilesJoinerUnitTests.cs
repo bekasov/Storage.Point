@@ -21,7 +21,7 @@
                 new FileModel { FileStorageId = 2 },
             };
 
-            IList<FileModel> actualCollection = this.joiner.JoinTheSame(expectedCollection);
+            IReadOnlyList<FileModel> actualCollection = this.joiner.JoinTheSame(expectedCollection);
             
             Assert.Equal(expectedCollection, actualCollection);
         }
@@ -39,7 +39,7 @@
 
             IReadOnlyList<FileModel> expectedCollection = new List<FileModel> { file1, file2, file3 };
 
-            IList<FileModel> actualCollection = this.joiner.JoinTheSame(collection);
+            IReadOnlyList<FileModel> actualCollection = this.joiner.JoinTheSame(collection);
 
             Assert.Equal(expectedCollection, actualCollection);
         }
@@ -57,7 +57,7 @@
 
             IReadOnlyList<FileModel> expectedCollection = new List<FileModel> { file2, file1_2, file3 };
 
-            IList<FileModel> actualCollection = this.joiner.JoinTheSame(collection);
+            IReadOnlyList<FileModel> actualCollection = this.joiner.JoinTheSame(collection);
 
             Assert.Equal(expectedCollection, actualCollection);
         }

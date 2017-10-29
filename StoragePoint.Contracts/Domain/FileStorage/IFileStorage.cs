@@ -1,18 +1,18 @@
 ﻿namespace StoragePoint.Contracts.Domain.FileStorage
 {
+    using System.Collections.Generic;
+
     using StoragePoint.Contracts.Domain.Changes.Model;
     using StoragePoint.Contracts.Domain.FileStorage.Model;
 
-    public interface IFileRepository
+    public interface IFileStorage
     {
         bool IsInitialized { get; }
 
-        void CopyAll(IFileRepository source);
+        void CopyAll(IFileStorage source);
 
         StorageContent GetAll();
 
-        MixedChanges DetectUpdates(IFileRepository source);
-
-        void Update(MixedChanges changes);
+        void Update(IReadOnlyList<ChangedFile> changes);
     }
 }
